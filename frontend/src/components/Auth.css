@@ -96,6 +96,64 @@
   text-decoration: underline;
 }
 
+.auth-divider {
+  text-align: center;
+  margin: 2rem 0;
+  position: relative;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e0e0e0;
+  z-index: 1;
+}
+
+.auth-divider span {
+  background: white;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.google-signin-container {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.google-login-btn {
+  width: 100% !important;
+  border-radius: 10px !important;
+  padding: 12px !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  background: #4285f4 !important;
+  border: none !important;
+  color: white !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+}
+
+.google-login-btn:hover {
+  background: #3367d6 !important;
+}
+
+.google-login-btn:disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .auth-card {

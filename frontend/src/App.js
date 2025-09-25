@@ -12,6 +12,41 @@ import Calendar from './components/Calendar';
 import TodoList from './components/TodoList';
 import Profile from './components/Profile';
 
+// OAuth Callback Component
+const OAuthCallback = ({ onLogin }) => {
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // Get user info
+      axios.get('/api/auth/me')
+        .then(response => {
+          onLogin(response.data, token);
+          window.location.href = '/dashboard';
+        })
+        .catch(error => {
+          console.error('Error getting user info:', error);
+          window.location.href = '/login';
+        });
+    } else {
+      window.location.href = '/login';
+    }
+  }, [onLogin]);
+
+  return (
+    <div className="loading-container">
+      <div className="loading-spinner">
+        <span className="heart">💕</span>
+        <p>Authenticating with Google...</p>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -90,6 +125,14 @@ function App() {
             <Route
               path="/profile"
               element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/auth/callback"
+              element={<OAuthCallback onLogin={handleLogin} />}
+            />
+            <Route
+              path="/auth/google/callback"
+              element={<OAuthCallback onLogin={handleLogin} />}
             />
             <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
           </Routes>

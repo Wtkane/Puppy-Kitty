@@ -16,6 +16,11 @@ const Calendar = ({ user }) => {
     color: '#ff6b6b',
     isAllDay: false
   });
+  const [googleEvents, setGoogleEvents] = useState([]);
+  const [showGoogleSync, setShowGoogleSync] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const colors = [
     { value: '#ff6b6b', label: 'Red', emoji: '❤️' },
@@ -29,7 +34,48 @@ const Calendar = ({ user }) => {
 
   useEffect(() => {
     fetchEvents();
+    fetchGoogleEvents();
   }, []);
+
+  const fetchGoogleEvents = async () => {
+    try {
+      const response = await axios.get('/api/calendar/google/events');
+      setGoogleEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching Google Calendar events:', error);
+    }
+  };
+
+  const syncGoogleEvents = async () => {
+    try {
+      await axios.post('/api/calendar/google/sync');
+      fetchEvents(); // Refresh local events after sync
+      alert('Google Calendar synced successfully!');
+    } catch (error) {
+      console.error('Error syncing Google Calendar:', error);
+      alert('Failed to sync Google Calendar');
+    }
+  };
+
+  const createGoogleEvent = async (eventData) => {
+    try {
+      const startDateTime = `${eventData.date}T${eventData.startTime}:00`;
+      const endDateTime = `${eventData.date}T${eventData.endTime}:00`;
+
+      await axios.post('/api/calendar/google/events', {
+        summary: eventData.title,
+        description: eventData.description,
+        start: startDateTime,
+        end: endDateTime,
+        location: ''
+      });
+
+      alert('Event created in Google Calendar!');
+    } catch (error) {
+      console.error('Error creating Google Calendar event:', error);
+      alert('Failed to create event in Google Calendar');
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -130,6 +176,120 @@ const Calendar = ({ user }) => {
 
   const groupedEvents = groupEventsByDate(events);
 
+  // Calendar grid helper functions
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getEventsForDate = (date) => {
+    const dateString = date.toDateString();
+    return events.filter(event => {
+      const eventDate = new Date(event.date).toDateString();
+      return eventDate === dateString;
+    });
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const formatMonthYear = (date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const isToday = (date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isCurrentMonth = (date) => {
+    return date.getMonth() === currentDate.getMonth() &&
+           date.getFullYear() === currentDate.getFullYear();
+  };
+
+  const renderCalendarGrid = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const days = [];
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 0);
+      const day = prevMonth.getDate() - firstDay + i + 1;
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, day);
+      days.push(
+        <div key={`empty-${i}`} className="calendar-day other-month">
+          <span className="day-number">{day}</span>
+        </div>
+      );
+    }
+
+    // Add cells for each day of the current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dayEvents = getEventsForDate(date);
+      const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+
+      days.push(
+        <div
+          key={day}
+          className={`calendar-day ${isCurrentMonth(date) ? 'current-month' : ''} ${isToday(date) ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+          onClick={() => setSelectedDate(date)}
+        >
+          <span className="day-number">{day}</span>
+          {dayEvents.length > 0 && (
+            <div className="day-events">
+              {dayEvents.slice(0, 3).map((event, index) => (
+                <div
+                  key={event._id}
+                  className="day-event"
+                  style={{ backgroundColor: event.color }}
+                  title={event.title}
+                >
+                  {event.title.length > 15 ? `${event.title.substring(0, 15)}...` : event.title}
+                </div>
+              ))}
+              {dayEvents.length > 3 && (
+                <div className="day-event more-events" title={`${dayEvents.length - 3} more events`}>
+                  +{dayEvents.length - 3} more
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Add empty cells for days after the last day of the month to fill the grid
+    const totalCells = days.length;
+    const remainingCells = 42 - totalCells; // 6 weeks * 7 days
+    for (let i = 1; i <= remainingCells; i++) {
+      const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i);
+      days.push(
+        <div key={`next-${i}`} className="calendar-day other-month">
+          <span className="day-number">{i}</span>
+        </div>
+      );
+    }
+
+    return days;
+  };
+
   if (loading) {
     return (
       <div className="calendar-container">
@@ -146,16 +306,42 @@ const Calendar = ({ user }) => {
       <div className="calendar-header">
         <h1 className="calendar-title">
           <span className="emoji">📅</span>
-          Shared Calendar
+          Google Calendar
           <span className="emoji">💕</span>
         </h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          <span>➕</span>
-          Add Event
-        </button>
+        <div className="calendar-actions">
+          <div className="view-toggle">
+            <button
+              className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setViewMode('list')}
+            >
+              <span>📋</span>
+              List View
+            </button>
+            <button
+              className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setViewMode('calendar')}
+            >
+              <span>📅</span>
+              Calendar View
+            </button>
+          </div>
+          <button
+            className="btn btn-secondary"
+            onClick={syncGoogleEvents}
+            title="Sync Google Calendar events"
+          >
+            <span>🔄</span>
+            Sync Google
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowForm(true)}
+          >
+            <span>➕</span>
+            Add Event
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -270,70 +456,168 @@ const Calendar = ({ user }) => {
                 }}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingEvent ? 'Update Event' : 'Create Event'}
-                </button>
+                <div className="form-actions-right">
+                  <button
+                    type="button"
+                    className="btn btn-google"
+                    onClick={() => createGoogleEvent(formData)}
+                    disabled={!formData.title || !formData.date || !formData.startTime || !formData.endTime}
+                  >
+                    <span>📅</span>
+                    Add to Google
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingEvent ? 'Update Event' : 'Create Event'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      <div className="events-container">
-        {Object.keys(groupedEvents).length === 0 ? (
-          <div className="no-events">
-            <span className="emoji">📅</span>
-            <h3>No events yet</h3>
-            <p>Click "Add Event" to create your first shared event!</p>
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <div className="calendar-view">
+          <div className="calendar-navigation">
+            <button className="btn btn-secondary" onClick={() => navigateMonth(-1)}>
+              <span>⬅️</span> Previous
+            </button>
+            <div className="calendar-title-nav">
+              <h2>{formatMonthYear(currentDate)}</h2>
+              <button className="btn btn-small btn-primary" onClick={goToToday}>
+                Today
+              </button>
+            </div>
+            <button className="btn btn-secondary" onClick={() => navigateMonth(1)}>
+              Next <span>➡️</span>
+            </button>
           </div>
-        ) : (
-          Object.entries(groupedEvents).map(([dateKey, dayEvents]) => (
-            <div key={dateKey} className="event-day">
-              <h2 className="event-date">{formatDate(dateKey)}</h2>
-              <div className="event-list">
-                {dayEvents.map(event => (
-                  <div
-                    key={event._id}
-                    className="event-card"
-                    style={{ borderLeftColor: event.color }}
-                  >
-                    <div className="event-header">
-                      <h3 className="event-title">{event.title}</h3>
-                      <div className="event-actions">
-                        <button
-                          className="btn-icon"
-                          onClick={() => handleEdit(event)}
-                          title="Edit event"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="btn-icon"
-                          onClick={() => handleDelete(event._id)}
-                          title="Delete event"
-                        >
-                          🗑️
-                        </button>
+
+          <div className="calendar-grid">
+            <div className="calendar-header-row">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="calendar-header-cell">
+                  {day}
+                </div>
+              ))}
+            </div>
+            <div className="calendar-days">
+              {renderCalendarGrid()}
+            </div>
+          </div>
+
+          {/* Selected Date Events */}
+          {selectedDate && (
+            <div className="selected-date-events">
+              <h3>Events for {formatDate(selectedDate)}</h3>
+              {getEventsForDate(selectedDate).length === 0 ? (
+                <p className="no-events-message">No events scheduled for this day</p>
+              ) : (
+                <div className="event-list">
+                  {getEventsForDate(selectedDate).map(event => (
+                    <div
+                      key={event._id}
+                      className="event-card"
+                      style={{ borderLeftColor: event.color }}
+                    >
+                      <div className="event-header">
+                        <h4 className="event-title">{event.title}</h4>
+                        <div className="event-actions">
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleEdit(event)}
+                            title="Edit event"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleDelete(event._id)}
+                            title="Delete event"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="event-details">
+                        <p className="event-time">
+                          {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                          {event.isAllDay && ' (All day)'}
+                        </p>
+                        {event.description && (
+                          <p className="event-description">{event.description}</p>
+                        )}
+                        <p className="event-creator">Created by {event.createdBy.name}</p>
                       </div>
                     </div>
-
-                    <div className="event-details">
-                      <p className="event-time">
-                        {formatTime(event.startTime)} - {formatTime(event.endTime)}
-                        {event.isAllDay && ' (All day)'}
-                      </p>
-                      {event.description && (
-                        <p className="event-description">{event.description}</p>
-                      )}
-                      <p className="event-creator">Created by {event.createdBy.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ))
-        )}
-      </div>
+          )}
+        </div>
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        <div className="events-container">
+          {Object.keys(groupedEvents).length === 0 ? (
+            <div className="no-events">
+              <span className="emoji">📅</span>
+              <h3>No events yet</h3>
+              <p>Click "Add Event" to create your first shared event!</p>
+            </div>
+          ) : (
+            Object.entries(groupedEvents).map(([dateKey, dayEvents]) => (
+              <div key={dateKey} className="event-day">
+                <h2 className="event-date">{formatDate(dateKey)}</h2>
+                <div className="event-list">
+                  {dayEvents.map(event => (
+                    <div
+                      key={event._id}
+                      className="event-card"
+                      style={{ borderLeftColor: event.color }}
+                    >
+                      <div className="event-header">
+                        <h3 className="event-title">{event.title}</h3>
+                        <div className="event-actions">
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleEdit(event)}
+                            title="Edit event"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleDelete(event._id)}
+                            title="Delete event"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="event-details">
+                        <p className="event-time">
+                          {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                          {event.isAllDay && ' (All day)'}
+                        </p>
+                        {event.description && (
+                          <p className="event-description">{event.description}</p>
+                        )}
+                        <p className="event-creator">Created by {event.createdBy.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Floating hearts */}
       <div className="heart-decoration">💕</div>
