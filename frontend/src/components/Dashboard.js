@@ -34,7 +34,7 @@ const Dashboard = ({ user }) => {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const upcomingEvents = events.filter(event => {
+      const todaysEvents = events.filter(event => {
         const eventDate = new Date(event.date);
         return eventDate >= today && eventDate < tomorrow;
       }).length;
@@ -46,12 +46,20 @@ const Dashboard = ({ user }) => {
         totalEvents: events.length,
         totalTodos: todos.length,
         completedTodos,
-        upcomingEvents,
+        upcomingEvents: todaysEvents,
         completionRate
       });
 
+      // Get upcoming events (next 5 events, sorted by date)
+      const currentTime = new Date();
+      const currentDate = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate());
+      const upcomingEventsList = events
+        .filter(event => new Date(event.date) >= currentDate)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 5);
+
       // Get recent items (last 5, but show only 3)
-      setRecentEvents(events.slice(-5).reverse());
+      setRecentEvents(upcomingEventsList);
       setRecentTodos(todos.slice(-5).reverse());
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -171,7 +179,7 @@ const Dashboard = ({ user }) => {
         <div className="activity-section">
           <h2 className="section-title">
             <span className="emoji">🕐</span>
-            Recent Events
+            Upcoming Events
           </h2>
           {recentEvents.length > 0 ? (
             <div className="activity-list">
@@ -187,7 +195,7 @@ const Dashboard = ({ user }) => {
               ))}
             </div>
           ) : (
-            <p className="no-activity">No recent events. <Link to="/calendar">Add your first event!</Link></p>
+            <p className="no-activity">No upcoming events. <Link to="/calendar">Add your first event!</Link></p>
           )}
         </div>
 
