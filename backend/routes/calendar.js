@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { google } = require('googleapis');
 const Calendar = require('../models/Calendar');
 const User = require('../models/User');
 
@@ -114,6 +115,148 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Google Calendar API routes
+
+// Get Google Calendar events
+router.get('/google/events', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user || !user.googleAccessToken) {
+      return res.status(404).json({ message: 'User or Google access token not found' });
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    );
+
+    oauth2Client.setCredentials({
+      access_token: user.googleAccessToken,
+      refresh_token: user.googleRefreshToken
+    });
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    const { data } = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: new Date().toISOString(),
+      maxResults: 50,
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+
+    res.json(data.items);
+  } catch (error) {
+    console.error('Google Calendar API error:', error);
+    res.status(500).json({ message: 'Failed to fetch Google Calendar events', error: error.message });
+  }
+});
+
+// Create Google Calendar event
+router.post('/google/events', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user || !user.googleAccessToken) {
+      return res.status(404).json({ message: 'User or Google access token not found' });
+    }
+
+    const { summary, description, start, end, location } = req.body;
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    );
+
+    oauth2Client.setCredentials({
+      access_token: user.googleAccessToken,
+      refresh_token: user.googleRefreshToken
+    });
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    const event = {
+      summary,
+      description,
+      location,
+      start: {
+        dateTime: start,
+        timeZone: 'America/New_York',
+      },
+      end: {
+        dateTime: end,
+        timeZone: 'America/New_York',
+      },
+    };
+
+    const { data } = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody: event,
+    });
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('Google Calendar API error:', error);
+    res.status(500).json({ message: 'Failed to create Google Calendar event', error: error.message });
+  }
+});
+
+// Sync Google Calendar events to local database
+router.post('/google/sync', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user || !user.googleAccessToken) {
+      return res.status(404).json({ message: 'User or Google access token not found' });
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    );
+
+    oauth2Client.setCredentials({
+      access_token: user.googleAccessToken,
+      refresh_token: user.googleRefreshToken
+    });
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    const { data } = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: new Date().toISOString(),
+      maxResults: 100,
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+
+    // Sync events to local database
+    const syncedEvents = [];
+    for (const event of data.items) {
+      const localEvent = new Calendar({
+        title: event.summary || 'Untitled Event',
+        description: event.description || '',
+        date: new Date(event.start.dateTime || event.start.date),
+        startTime: event.start.dateTime ? new Date(event.start.dateTime).toTimeString().slice(0, 5) : '',
+        endTime: event.end.dateTime ? new Date(event.end.dateTime).toTimeString().slice(0, 5) : '',
+        color: '#4285f4',
+        isAllDay: !event.start.dateTime,
+        createdBy: req.userId,
+        googleEventId: event.id
+      });
+
+      await localEvent.save();
+      syncedEvents.push(localEvent);
+    }
+
+    res.json({ message: 'Events synced successfully', events: syncedEvents });
+  } catch (error) {
+    console.error('Google Calendar sync error:', error);
+    res.status(500).json({ message: 'Failed to sync Google Calendar events', error: error.message });
   }
 });
 

@@ -16,12 +16,22 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
     minlength: 6
   },
   avatar: {
     type: String,
     default: ''
+  },
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  googleAccessToken: {
+    type: String
+  },
+  googleRefreshToken: {
+    type: String
   },
   createdAt: {
     type: Date,

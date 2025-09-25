@@ -30,7 +30,13 @@ const calendarSchema = new mongoose.Schema({
   color: {
     type: String,
     default: '#ff6b6b',
-    enum: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8']
+    enum: [
+      // Custom colors
+      '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8',
+      // Google Calendar colors
+      '#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9c27b0', '#00acc1', '#ff7043', '#8bc34a',
+      '#ff9800', '#e91e63', '#3f51b5', '#009688', '#ffc107', '#795548', '#607d8b'
+    ]
   },
   isAllDay: {
     type: Boolean,
