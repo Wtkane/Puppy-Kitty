@@ -48,9 +48,23 @@ const Calendar = ({ user }) => {
 
   const syncGoogleEvents = async () => {
     try {
-      await axios.post('/api/calendar/google/sync');
+      const response = await axios.post('/api/calendar/google/sync');
+      const { newEvents, updatedEvents, deletedEvents, errors } = response.data;
+
       fetchEvents(); // Refresh local events after sync
-      alert('Google Calendar synced successfully!');
+
+      // Show detailed sync results
+      let message = `Google Calendar synced successfully!\n\n`;
+      message += `✅ New events: ${newEvents}\n`;
+      message += `🔄 Updated events: ${updatedEvents}\n`;
+      message += `🗑️ Deleted events: ${deletedEvents}`;
+
+      if (errors && errors.length > 0) {
+        message += `\n\n⚠️ ${errors.length} events had issues (check console for details)`;
+        console.warn('Sync errors:', errors);
+      }
+
+      alert(message);
     } catch (error) {
       console.error('Error syncing Google Calendar:', error);
       alert('Failed to sync Google Calendar');
@@ -128,6 +142,22 @@ const Calendar = ({ user }) => {
         fetchEvents();
       } catch (error) {
         console.error('Error deleting event:', error);
+      }
+    }
+  };
+
+  const clearAllEvents = async () => {
+    if (window.confirm('⚠️ Are you sure you want to delete ALL events? This cannot be undone!')) {
+      try {
+        const response = await axios.delete('/api/calendar');
+        const { deletedCount } = response.data;
+
+        fetchEvents(); // Refresh the events list
+
+        alert(`✅ Successfully cleared ${deletedCount} events! Your calendar is now clean.`);
+      } catch (error) {
+        console.error('Error clearing events:', error);
+        alert('Failed to clear events. Please try again.');
       }
     }
   };
@@ -333,6 +363,14 @@ const Calendar = ({ user }) => {
           >
             <span>🔄</span>
             Sync Google
+          </button>
+          <button
+            className="btn btn-danger"
+            onClick={clearAllEvents}
+            title="Clear all events"
+          >
+            <span>🗑️</span>
+            Clear All
           </button>
           <button
             className="btn btn-primary"

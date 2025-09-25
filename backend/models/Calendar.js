@@ -42,6 +42,11 @@ const calendarSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  googleEventId: {
+    type: String,
+    sparse: true, // Allow null/undefined values
+    unique: true // Prevent true duplicates
+  },
   createdAt: {
     type: Date,
     default: Date.now

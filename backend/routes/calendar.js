@@ -118,6 +118,20 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// Clear all events for the current user
+router.delete('/', auth, async (req, res) => {
+  try {
+    const result = await Calendar.deleteMany({ createdBy: req.userId });
+
+    res.json({
+      message: 'All events cleared successfully',
+      deletedCount: result.deleted
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Google Calendar API routes
 
 // Get Google Calendar events
@@ -234,26 +248,88 @@ router.post('/google/sync', auth, async (req, res) => {
       orderBy: 'startTime',
     });
 
-    // Sync events to local database
     const syncedEvents = [];
-    for (const event of data.items) {
-      const localEvent = new Calendar({
-        title: event.summary || 'Untitled Event',
-        description: event.description || '',
-        date: new Date(event.start.dateTime || event.start.date),
-        startTime: event.start.dateTime ? new Date(event.start.dateTime).toTimeString().slice(0, 5) : '',
-        endTime: event.end.dateTime ? new Date(event.end.dateTime).toTimeString().slice(0, 5) : '',
-        color: '#4285f4',
-        isAllDay: !event.start.dateTime,
-        createdBy: req.userId,
-        googleEventId: event.id
-      });
+    const updatedEvents = [];
+    const errors = [];
 
-      await localEvent.save();
-      syncedEvents.push(localEvent);
+    // Get all existing Google events for this user to check for deletions
+    const existingGoogleEvents = await Calendar.find({
+      createdBy: req.userId,
+      googleEventId: { $exists: true, $ne: null }
+    });
+
+    const existingGoogleEventIds = new Set(existingGoogleEvents.map(event => event.googleEventId));
+
+    // Sync events to local database
+    for (const event of data.items) {
+      try {
+        // Skip events without proper timing information
+        if (!event.start || (!event.start.dateTime && !event.start.date)) {
+          continue;
+        }
+
+        const eventData = {
+          title: event.summary || 'Untitled Event',
+          description: event.description || '',
+          date: new Date(event.start.dateTime || event.start.date),
+          startTime: event.start.dateTime ? new Date(event.start.dateTime).toTimeString().slice(0, 5) : '',
+          endTime: event.end.dateTime ? new Date(event.end.dateTime).toTimeString().slice(0, 5) : '',
+          color: '#4285f4',
+          isAllDay: !event.start.dateTime,
+          createdBy: req.userId,
+          googleEventId: event.id
+        };
+
+        // Check if event already exists
+        const existingEvent = await Calendar.findOne({
+          googleEventId: event.id,
+          createdBy: req.userId
+        });
+
+        if (existingEvent) {
+          // Update existing event
+          const updatedEvent = await Calendar.findByIdAndUpdate(
+            existingEvent._id,
+            eventData,
+            { new: true, runValidators: true }
+          ).populate('createdBy', 'name email');
+
+          updatedEvents.push(updatedEvent);
+        } else {
+          // Create new event
+          const localEvent = new Calendar(eventData);
+          await localEvent.save();
+          await localEvent.populate('createdBy', 'name email');
+          syncedEvents.push(localEvent);
+        }
+
+        // Remove from existing set to track which events still exist
+        existingGoogleEventIds.delete(event.id);
+
+      } catch (eventError) {
+        console.error(`Error syncing event ${event.id}:`, eventError);
+        errors.push({ eventId: event.id, error: eventError.message });
+      }
     }
 
-    res.json({ message: 'Events synced successfully', events: syncedEvents });
+    // Remove events that no longer exist in Google Calendar
+    const deletedCount = existingGoogleEventIds.size;
+    if (deletedCount > 0) {
+      await Calendar.deleteMany({
+        googleEventId: { $in: Array.from(existingGoogleEventIds) },
+        createdBy: req.userId
+      });
+    }
+
+    const result = {
+      message: 'Google Calendar synced successfully',
+      newEvents: syncedEvents.length,
+      updatedEvents: updatedEvents.length,
+      deletedEvents: deletedCount,
+      errors: errors.length > 0 ? errors : undefined
+    };
+
+    res.json(result);
   } catch (error) {
     console.error('Google Calendar sync error:', error);
     res.status(500).json({ message: 'Failed to sync Google Calendar events', error: error.message });

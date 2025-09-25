@@ -46,7 +46,20 @@ const Navbar = ({ user, onLogout }) => {
 
       <div className="user-info">
         <div className="user-avatar">
-          {user.avatar || user.name.charAt(0).toUpperCase()}
+          {user.avatar && user.avatar.startsWith('http') ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }}
+            />
+          ) : (
+            user.name.charAt(0).toUpperCase()
+          )}
         </div>
         <span>Welcome, {user.name}! 💕</span>
         <button className="logout-btn" onClick={onLogout}>
