@@ -30,19 +30,29 @@ const Dashboard = ({ user }) => {
 
       // Calculate stats
       const now = new Date();
-      const upcomingEvents = events.filter(event => new Date(event.date) >= now).length;
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const upcomingEvents = events.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate >= today && eventDate < tomorrow;
+      }).length;
+
       const completedTodos = todos.filter(todo => todo.completed).length;
+      const completionRate = todos.length > 0 ? Math.round((completedTodos / todos.length) * 100) : 0;
 
       setStats({
         totalEvents: events.length,
         totalTodos: todos.length,
         completedTodos,
-        upcomingEvents
+        upcomingEvents,
+        completionRate
       });
 
-      // Get recent items (last 3)
-      setRecentEvents(events.slice(-3).reverse());
-      setRecentTodos(todos.slice(-3).reverse());
+      // Get recent items (last 5, but show only 3)
+      setRecentEvents(events.slice(-5).reverse());
+      setRecentTodos(todos.slice(-5).reverse());
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
