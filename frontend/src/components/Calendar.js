@@ -22,6 +22,7 @@ const Calendar = ({ user }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [groupedEvents, setGroupedEvents] = useState([]);
+  const [eventFilter, setEventFilter] = useState('today'); // 'today', 'week', 'month', 'all'
 
   const colors = [
     { value: '#ff6b6b', label: 'Red', emoji: '❤️' },
@@ -251,6 +252,54 @@ const Calendar = ({ user }) => {
            date.getFullYear() === currentDate.getFullYear();
   };
 
+  // Filter events based on selected time period
+  const filterEvents = (events) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (eventFilter) {
+      case 'today':
+        return events.filter(event => {
+          const eventDate = new Date(event.date);
+          const eventDateString = eventDate.toISOString().split('T')[0];
+          const todayString = today.toISOString().split('T')[0];
+          return eventDateString === todayString;
+        });
+
+      case 'week':
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+
+        const weekStartString = weekStart.toISOString().split('T')[0];
+        const weekEndString = weekEnd.toISOString().split('T')[0];
+
+        return events.filter(event => {
+          const eventDate = new Date(event.date);
+          const eventDateString = eventDate.toISOString().split('T')[0];
+          return eventDateString >= weekStartString && eventDateString <= weekEndString;
+        });
+
+      case 'month':
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        const monthStartString = monthStart.toISOString().split('T')[0];
+        const monthEndString = monthEnd.toISOString().split('T')[0];
+
+        return events.filter(event => {
+          const eventDate = new Date(event.date);
+          const eventDateString = eventDate.toISOString().split('T')[0];
+          return eventDateString >= monthStartString && eventDateString <= monthEndString;
+        });
+
+      case 'all':
+      default:
+        return events;
+    }
+  };
+
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
@@ -336,46 +385,68 @@ const Calendar = ({ user }) => {
         <h1 className="calendar-title">
           Calendar
         </h1>
-        <div className="calendar-actions">
-          <div className="view-toggle">
+        <div className="calendar-controls">
+          <div className="control-group">
+            <div className="view-toggle">
+              <button
+                className={`btn btn-small ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('list')}
+                title="List View"
+              >
+                <span>📋</span>
+                List
+              </button>
+              <button
+                className={`btn btn-small ${viewMode === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('calendar')}
+                title="Calendar View"
+              >
+                <span>📅</span>
+                Calendar
+              </button>
+            </div>
+
+            {viewMode === 'list' && (
+              <div className="filter-dropdown">
+                <select
+                  className="form-input filter-select"
+                  value={eventFilter}
+                  onChange={(e) => setEventFilter(e.target.value)}
+                >
+                  <option value="today">📅 Today</option>
+                  <option value="week">📆 This Week</option>
+                  <option value="month">🗓️ This Month</option>
+                  <option value="all">📋 All Events</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="action-buttons">
             <button
-              className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setViewMode('list')}
+              className="btn btn-secondary btn-small"
+              onClick={syncGoogleEvents}
+              title="Sync Google Calendar events"
             >
-              <span>📋</span>
-              List View
+              <span>🔄</span>
+              Sync
             </button>
             <button
-              className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setViewMode('calendar')}
+              className="btn btn-danger btn-small"
+              onClick={clearAllEvents}
+              title="Clear all events"
             >
-              <span>📅</span>
-              Calendar View
+              <span>🗑️</span>
+              Clear All
+            </button>
+            <button
+              className="btn btn-primary btn-small"
+              onClick={() => setShowForm(true)}
+            >
+              <span>➕</span>
+              Add Event
             </button>
           </div>
-          <button
-            className="btn btn-secondary"
-            onClick={syncGoogleEvents}
-            title="Sync Google Calendar events"
-          >
-            <span>🔄</span>
-            Sync Google
-          </button>
-          <button
-            className="btn btn-danger"
-            onClick={clearAllEvents}
-            title="Clear all events"
-          >
-            <span>🗑️</span>
-            Clear All
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowForm(true)}
-          >
-            <span>➕</span>
-            Add Event
-          </button>
         </div>
       </div>
 
@@ -598,6 +669,7 @@ const Calendar = ({ user }) => {
       {/* List View */}
       {viewMode === 'list' && (
         <div className="events-container">
+
           {groupedEvents.length === 0 ? (
             <div className="no-events">
               <span className="emoji">📅</span>
@@ -607,7 +679,7 @@ const Calendar = ({ user }) => {
           ) : (
             <div className="events-grid">
               {groupedEvents.map((userGroup, index) => {
-                const userEvents = userGroup.events;
+                const userEvents = filterEvents(userGroup.events);
 
                 return (
                   <div key={userGroup.user._id} className="user-section" style={{ animationDelay: `${index * 0.1}s` }}>

@@ -30,30 +30,50 @@ const Dashboard = ({ user }) => {
 
       // Calculate stats
       const now = new Date();
+      // Create today's date at start of day in local time
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const todaysEvents = events.filter(event => {
+      // Debug logging
+      console.log('Current time:', now.toISOString());
+      console.log('Today start:', today.toISOString());
+      console.log('Tomorrow start:', tomorrow.toISOString());
+      console.log('Total events from API:', events.length);
+      events.forEach(event => {
+        console.log('Event date:', event.date, 'Event title:', event.title);
+      });
+
+      // Filter events to only include current user's events
+      const userEvents = events.filter(event => event.createdBy._id === user._id);
+
+      const todaysEvents = userEvents.filter(event => {
         const eventDate = new Date(event.date);
-        return eventDate >= today && eventDate < tomorrow;
+        // Compare date parts only (YYYY-MM-DD) to avoid timezone issues
+        const eventDateString = eventDate.toISOString().split('T')[0];
+        const todayString = today.toISOString().split('T')[0];
+        const isToday = eventDateString === todayString;
+        console.log(`Event "${event.title}" date: ${eventDate.toISOString()}, dateString: ${eventDateString}, todayString: ${todayString}, isToday: ${isToday}`);
+        return isToday;
       }).length;
+
+      console.log('Todays events count:', todaysEvents);
 
       const completedTodos = todos.filter(todo => todo.completed).length;
       const completionRate = todos.length > 0 ? Math.round((completedTodos / todos.length) * 100) : 0;
 
       setStats({
-        totalEvents: events.length,
+        totalEvents: todaysEvents, // Changed to show remaining events today instead of total
         totalTodos: todos.length,
         completedTodos,
         upcomingEvents: todaysEvents,
         completionRate
       });
 
-      // Get upcoming events (next 5 events, sorted by date)
+      // Get upcoming events (next 5 events, sorted by date) - only current user's events
       const currentTime = new Date();
       const currentDate = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate());
-      const upcomingEventsList = events
+      const upcomingEventsList = userEvents
         .filter(event => new Date(event.date) >= currentDate)
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .slice(0, 5);
@@ -112,7 +132,7 @@ const Dashboard = ({ user }) => {
           <div className="stat-icon">📅</div>
           <div className="stat-content">
             <h3>{stats.totalEvents}</h3>
-            <p>Total Events</p>
+            <p>Remaining Events Today</p>
           </div>
         </div>
 
