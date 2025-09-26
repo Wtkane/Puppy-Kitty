@@ -149,15 +149,17 @@ const Goals = ({ user }) => {
 
       <div className="goals-content">
         {/* Add Goal Button */}
-        <div className="goals-actions">
-          <button
-            className="btn btn-primary add-goal-btn"
-            onClick={() => setShowAddForm(!showAddForm)}
-          >
-            <span>➕</span>
-            {showAddForm ? 'Cancel' : 'Add New Goal'}
-          </button>
-        </div>
+        {!showAddForm && (
+          <div className="goals-actions">
+            <button
+              className="btn btn-primary add-goal-btn"
+              onClick={() => setShowAddForm(true)}
+            >
+              <span>➕</span>
+              Add New Goal
+            </button>
+          </div>
+        )}
 
         {/* Add Goal Form */}
         {showAddForm && (
@@ -333,70 +335,89 @@ const Goals = ({ user }) => {
           ) : (
             goals.map(goal => (
               <div key={goal._id} className="goal-card">
-                <div className="goal-header">
-                  <div className="goal-category">
-                    <span className="category-emoji">{getCategoryEmoji(goal.category)}</span>
-                    <span className="category-name">{goal.category}</span>
+                <div className="goal-card-header">
+                  <div className="goal-main-icon">
+                    {getCategoryEmoji(goal.category)}
                   </div>
-                  <div className="goal-priority" style={{ backgroundColor: getPriorityColor(goal.priority) }}>
-                    {goal.priority}
+                  <div className="goal-header-details">
+                    <div className="goal-priority-badge" style={{ backgroundColor: getPriorityColor(goal.priority) }}>
+                      {goal.priority}
+                    </div>
+                    <div className="goal-category-label">
+                      {goal.category}
+                    </div>
+                    {goal.deadline && (
+                      <div className="goal-deadline-header">
+                        <span className="deadline-icon">📅</span>
+                        <span className="deadline-text">
+                          {new Date(goal.deadline).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="goal-content">
-                  <h3 className="goal-title">{goal.title}</h3>
+                <div className="goal-card-body">
+                  <h3 className="goal-card-title">{goal.title}</h3>
                   {goal.description && (
-                    <p className="goal-description">{goal.description}</p>
+                    <p className="goal-card-description">{goal.description}</p>
                   )}
 
-                  <div className="goal-progress">
-                    <div className="progress-info">
-                      <span className="current-value">
-                        {goal.currentValue || 0} {goal.unit}
-                      </span>
-                      <span className="target-value">
-                        {goal.targetValue} {goal.unit}
-                      </span>
+                  <div className="goal-metrics">
+                    <div className="metric-item">
+                      <div className="metric-label">Progress</div>
+                      <div className="metric-value">
+                        {goal.currentValue || 0} / {goal.targetValue} {goal.unit}
+                      </div>
                     </div>
-                    <div className="progress-bar">
-                      <div
-                        className="progress-fill"
-                        style={{
-                          width: `${getProgressPercentage(goal)}%`,
-                          backgroundColor: getPriorityColor(goal.priority)
-                        }}
-                      />
-                    </div>
-                    <div className="progress-percentage">
-                      {Math.round(getProgressPercentage(goal))}%
+                    <div className="metric-item">
+                      <div className="metric-label">Completion</div>
+                      <div className="metric-value">
+                        {Math.round(getProgressPercentage(goal))}%
+                      </div>
                     </div>
                   </div>
 
-                  {goal.deadline && (
-                    <div className="goal-deadline">
-                      <span>📅</span>
-                      <span>Due: {new Date(goal.deadline).toLocaleDateString()}</span>
+                  <div className="goal-progress-section">
+                    <div className="progress-bar-container">
+                      <div className="progress-bar-modern">
+                        <div
+                          className="progress-fill-modern"
+                          style={{
+                            width: `${getProgressPercentage(goal)}%`,
+                            backgroundColor: getPriorityColor(goal.priority)
+                          }}
+                        />
+                      </div>
+                      <div className="progress-percentage">
+                        {Math.round(getProgressPercentage(goal))}%
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                <div className="goal-actions">
-                  <div className="progress-input">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={goal.currentValue || 0}
-                      onChange={(e) => updateGoalProgress(goal._id, e.target.value)}
-                      className="progress-input-field"
-                    />
-                    <span className="progress-unit">{goal.unit}</span>
+                <div className="goal-card-footer">
+                  <div className="goal-update-section">
+                    <label className="update-label">Update Progress:</label>
+                    <div className="update-input-group">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={goal.currentValue || 0}
+                        onChange={(e) => updateGoalProgress(goal._id, e.target.value)}
+                        className="update-input"
+                        placeholder="0"
+                      />
+                      <span className="update-unit">{goal.unit}</span>
+                    </div>
                   </div>
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="goal-delete-btn"
                     onClick={() => deleteGoal(goal._id)}
+                    title="Delete Goal"
                   >
-                    🗑️
+                    <span className="delete-icon">🗑️</span>
                   </button>
                 </div>
               </div>

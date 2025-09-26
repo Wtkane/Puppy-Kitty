@@ -13,6 +13,7 @@ import TodoList from './components/TodoList';
 import Profile from './components/Profile';
 import SpecialDates from './components/SpecialDates';
 import Goals from './components/Goals';
+import Habits from './components/Habits';
 
 // OAuth Callback Component
 const OAuthCallback = ({ onLogin }) => {
@@ -131,6 +132,10 @@ function App() {
             <Route
               path="/goals"
               element={user ? <Goals user={user} /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/habits"
+              element={user ? <Habits user={user} /> : <Navigate to="/login" />}
             />
             <Route
               path="/profile"

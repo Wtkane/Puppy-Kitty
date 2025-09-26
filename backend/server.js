@@ -28,6 +28,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/todos', require('./routes/todos'));
 app.use('/api/goals', require('./routes/goals'));
+app.use('/api/habits', require('./routes/habits'));
 app.use('/api/special-dates', require('./routes/specialDates'));
 
 // Health check

@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema({
   googleRefreshToken: {
     type: String
   },
+  primaryColor: {
+    type: String,
+    default: '#ff6b6b'
+  },
+  secondaryColor: {
+    type: String,
+    default: '#4ecdc4'
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -46,7 +46,9 @@ router.post('/register', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        primaryColor: user.primaryColor,
+        secondaryColor: user.secondaryColor
       }
     });
   } catch (error) {
@@ -84,7 +86,9 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        primaryColor: user.primaryColor,
+        secondaryColor: user.secondaryColor
       }
     });
   } catch (error) {
@@ -110,6 +114,80 @@ router.get('/me', async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
+// Update user profile
+router.put('/profile', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'puppykittysecret');
+    const { name, email } = req.body;
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
+
+    user.name = name || user.name;
+    user.email = email || user.email;
+    await user.save();
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      primaryColor: user.primaryColor,
+      secondaryColor: user.secondaryColor,
+      createdAt: user.createdAt
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update user color preferences
+router.put('/colors', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'puppykittysecret');
+    const { primaryColor, secondaryColor } = req.body;
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.primaryColor = primaryColor || user.primaryColor;
+    user.secondaryColor = secondaryColor || user.secondaryColor;
+    await user.save();
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      primaryColor: user.primaryColor,
+      secondaryColor: user.secondaryColor,
+      createdAt: user.createdAt
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -250,7 +328,14 @@ router.post('/google/exchange', async (req, res) => {
     res.json({
       message: 'Google authentication successful',
       token: jwtToken,
-      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        primaryColor: user.primaryColor,
+        secondaryColor: user.secondaryColor
+      },
     });
   } catch (err) {
     console.error('Google OAuth exchange error:', err);

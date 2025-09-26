@@ -7,6 +7,10 @@ const Profile = ({ user, setUser }) => {
     name: user.name,
     email: user.email
   });
+  const [colorData, setColorData] = useState({
+    primaryColor: user.primaryColor || '#ff6b6b',
+    secondaryColor: user.secondaryColor || '#4ecdc4'
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
@@ -16,6 +20,32 @@ const Profile = ({ user, setUser }) => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleColorChange = (e) => {
+    setColorData({
+      ...colorData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleColorSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
+
+    try {
+      // Update user color preferences
+      const response = await axios.put(`/api/auth/colors`, colorData);
+      setUser(response.data);
+      setMessage('Color preferences updated successfully! 🎨');
+      setMessageType('success');
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to update color preferences');
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -222,6 +252,104 @@ const Profile = ({ user, setUser }) => {
           </form>
         </div>
 
+        {/* Color Customization */}
+        <div className="profile-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="emoji">🎨</span>
+              Color Preferences
+            </h2>
+          </div>
+
+          <form onSubmit={handleColorSubmit} className="profile-form">
+            <div className="form-group">
+              <label className="form-label" htmlFor="primaryColor">
+                Primary Color
+              </label>
+              <div className="color-input-group">
+                <input
+                  type="color"
+                  id="primaryColor"
+                  name="primaryColor"
+                  className="color-input"
+                  value={colorData.primaryColor}
+                  onChange={handleColorChange}
+                />
+                <input
+                  type="text"
+                  className="form-input color-text-input"
+                  value={colorData.primaryColor}
+                  onChange={handleColorChange}
+                  name="primaryColor"
+                  placeholder="#ff6b6b"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="secondaryColor">
+                Secondary Color
+              </label>
+              <div className="color-input-group">
+                <input
+                  type="color"
+                  id="secondaryColor"
+                  name="secondaryColor"
+                  className="color-input"
+                  value={colorData.secondaryColor}
+                  onChange={handleColorChange}
+                />
+                <input
+                  type="text"
+                  className="form-input color-text-input"
+                  value={colorData.secondaryColor}
+                  onChange={handleColorChange}
+                  name="secondaryColor"
+                  placeholder="#4ecdc4"
+                />
+              </div>
+            </div>
+
+            <div className="color-preview">
+              <h3>Preview</h3>
+              <div className="preview-buttons">
+                <button
+                  type="button"
+                  className="btn btn-preview-primary"
+                  style={{ backgroundColor: colorData.primaryColor }}
+                >
+                  Primary Button
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-preview-secondary"
+                  style={{ backgroundColor: colorData.secondaryColor }}
+                >
+                  Secondary Button
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="loading-spinner">🎨</span>
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <span>🎨</span>
+                  Update Colors
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
         {/* Account Stats */}
         <div className="profile-section">
           <div className="section-header">
@@ -262,139 +390,16 @@ const Profile = ({ user, setUser }) => {
           </div>
         </div>
 
-        {/* Goals */}
-        <div className="profile-section">
-          <div className="section-header">
-            <h2 className="section-title">
-              <span className="emoji">🎯</span>
-              Goals
-            </h2>
-          </div>
 
-          <div className="goals-content">
-            <div className="goal-item">
-              <div className="goal-icon">💪</div>
-              <div className="goal-info">
-                <h3>Stay Active</h3>
-                <p>Complete 3 workouts per week</p>
-                <div className="goal-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{width: '75%'}}></div>
-                  </div>
-                  <span className="progress-text">75%</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="goal-item">
-              <div className="goal-icon">📚</div>
-              <div className="goal-info">
-                <h3>Learn Something New</h3>
-                <p>Read 2 books this month</p>
-                <div className="goal-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{width: '50%'}}></div>
-                  </div>
-                  <span className="progress-text">50%</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="goal-item">
-              <div className="goal-icon">💰</div>
-              <div className="goal-info">
-                <h3>Save Money</h3>
-                <p>Save $500 this month</p>
-                <div className="goal-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{width: '30%'}}></div>
-                  </div>
-                  <span className="progress-text">30%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Habits */}
-        <div className="profile-section">
-          <div className="section-header">
-            <h2 className="section-title">
-              <span className="emoji">🔄</span>
-              Habits
-            </h2>
-          </div>
-
-          <div className="habits-content">
-            <div className="habit-item">
-              <div className="habit-icon">🧘</div>
-              <div className="habit-info">
-                <h3>Daily Meditation</h3>
-                <p>10 minutes of mindfulness</p>
-                <div className="habit-streak">
-                  <span className="streak-number">7</span>
-                  <span className="streak-label">day streak</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="habit-item">
-              <div className="habit-icon">💧</div>
-              <div className="habit-info">
-                <h3>Drink Water</h3>
-                <p>8 glasses per day</p>
-                <div className="habit-streak">
-                  <span className="streak-number">12</span>
-                  <span className="streak-label">day streak</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="habit-item">
-              <div className="habit-icon">📝</div>
-              <div className="habit-info">
-                <h3>Journal Writing</h3>
-                <p>Write for 5 minutes daily</p>
-                <div className="habit-streak">
-                  <span className="streak-number">3</span>
-                  <span className="streak-label">day streak</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Fun Facts */}
-        <div className="profile-section">
-          <div className="section-header">
-            <h2 className="section-title">
-              <span className="emoji">🎉</span>
-              Fun Facts
-            </h2>
-          </div>
-
-          <div className="fun-facts">
-            <div className="fact-item">
-              <span className="fact-emoji">🐶</span>
-              <p>You're part of the Puppy & Kitty family!</p>
-            </div>
-            <div className="fact-item">
-              <span className="fact-emoji">💕</span>
-              <p>You've been sharing moments with your loved one</p>
-            </div>
-            <div className="fact-item">
-              <span className="fact-emoji">✨</span>
-              <p>Every event and todo brings you closer together</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Floating hearts */}
       <div className="heart-decoration">💕</div>
       <div className="heart-decoration">💖</div>
       <div className="heart-decoration">💗</div>
-      <div className="heart-decoration">💓</div>
+      <div className="heart-decoration">�</div>
     </div>
   );
 };

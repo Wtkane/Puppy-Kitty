@@ -7,7 +7,7 @@ const TodoList = ({ user }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('pending');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -161,12 +161,10 @@ const TodoList = ({ user }) => {
     <div className="todos-container">
       <div className="todos-header">
         <h1 className="todos-title">
-          <span className="emoji">✅</span>
-          Shared Todo List
-          <span className="emoji">📝</span>
+          Todo List
         </h1>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary add-todo-btn"
           onClick={() => setShowForm(true)}
         >
           <span>➕</span>
@@ -177,12 +175,8 @@ const TodoList = ({ user }) => {
       {/* Stats */}
       <div className="todos-stats">
         <div className="stat-item">
-          <span className="stat-number">{stats.total}</span>
-          <span className="stat-label">Total</span>
-        </div>
-        <div className="stat-item">
           <span className="stat-number">{stats.pending}</span>
-          <span className="stat-label">Pending</span>
+          <span className="stat-label">To-do</span>
         </div>
         <div className="stat-item">
           <span className="stat-number">{stats.completed}</span>
@@ -193,16 +187,10 @@ const TodoList = ({ user }) => {
       {/* Filter */}
       <div className="todos-filter">
         <button
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All
-        </button>
-        <button
           className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
           onClick={() => setFilter('pending')}
         >
-          Pending
+          To-do
         </button>
         <button
           className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
@@ -226,6 +214,12 @@ const TodoList = ({ user }) => {
             {priority.emoji} {priority.label}
           </button>
         ))}
+        <button
+          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          All
+        </button>
       </div>
 
       {showForm && (
