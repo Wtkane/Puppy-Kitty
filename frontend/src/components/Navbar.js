@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
   const location = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const isActive = (path) => {
     return location.pathname === path ? 'nav-link active' : 'nav-link';
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const closeDropdown = () => {
+    setIsDropdownOpen(false);
   };
 
   return (
@@ -37,21 +46,21 @@ const Navbar = ({ user, onLogout }) => {
           </Link>
         </li>
         <li>
+          <Link to="/goals" className={isActive('/goals')}>
+            <span>🎯</span>
+            Goals
+          </Link>
+        </li>
+        <li>
           <Link to="/special-dates" className={isActive('/special-dates')}>
             <span>🎉</span>
             Dates
           </Link>
         </li>
-        <li>
-          <Link to="/profile" className={isActive('/profile')}>
-            <span>👤</span>
-            Profile
-          </Link>
-        </li>
       </ul>
 
       <div className="user-info">
-        <div className="user-avatar">
+        <div className="user-avatar" onClick={toggleDropdown}>
           {user.avatar && user.avatar.startsWith('http') ? (
             <img
               src={user.avatar}
@@ -67,12 +76,23 @@ const Navbar = ({ user, onLogout }) => {
             user.name.charAt(0).toUpperCase()
           )}
         </div>
-        <span>Welcome, {user.name}! 💕</span>
-        <button className="logout-btn" onClick={onLogout}>
-          <span>🚪</span>
-          Logout
-        </button>
       </div>
+
+      {isDropdownOpen && (
+        <div className="dropdown-menu">
+          <div className="dropdown-header">
+            Account Menu
+          </div>
+          <Link to="/profile" className="dropdown-item" onClick={closeDropdown}>
+            <span>👤</span>
+            Edit Profile
+          </Link>
+          <button className="dropdown-item logout-item" onClick={() => { closeDropdown(); onLogout(); }}>
+            <span>🚪</span>
+            Log Out
+          </button>
+        </div>
+      )}
     </nav>
   );
 };

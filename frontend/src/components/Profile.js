@@ -262,6 +262,108 @@ const Profile = ({ user, setUser }) => {
           </div>
         </div>
 
+        {/* Goals */}
+        <div className="profile-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="emoji">🎯</span>
+              Goals
+            </h2>
+          </div>
+
+          <div className="goals-content">
+            <div className="goal-item">
+              <div className="goal-icon">💪</div>
+              <div className="goal-info">
+                <h3>Stay Active</h3>
+                <p>Complete 3 workouts per week</p>
+                <div className="goal-progress">
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width: '75%'}}></div>
+                  </div>
+                  <span className="progress-text">75%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="goal-item">
+              <div className="goal-icon">📚</div>
+              <div className="goal-info">
+                <h3>Learn Something New</h3>
+                <p>Read 2 books this month</p>
+                <div className="goal-progress">
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width: '50%'}}></div>
+                  </div>
+                  <span className="progress-text">50%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="goal-item">
+              <div className="goal-icon">💰</div>
+              <div className="goal-info">
+                <h3>Save Money</h3>
+                <p>Save $500 this month</p>
+                <div className="goal-progress">
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width: '30%'}}></div>
+                  </div>
+                  <span className="progress-text">30%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Habits */}
+        <div className="profile-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="emoji">🔄</span>
+              Habits
+            </h2>
+          </div>
+
+          <div className="habits-content">
+            <div className="habit-item">
+              <div className="habit-icon">🧘</div>
+              <div className="habit-info">
+                <h3>Daily Meditation</h3>
+                <p>10 minutes of mindfulness</p>
+                <div className="habit-streak">
+                  <span className="streak-number">7</span>
+                  <span className="streak-label">day streak</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="habit-item">
+              <div className="habit-icon">💧</div>
+              <div className="habit-info">
+                <h3>Drink Water</h3>
+                <p>8 glasses per day</p>
+                <div className="habit-streak">
+                  <span className="streak-number">12</span>
+                  <span className="streak-label">day streak</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="habit-item">
+              <div className="habit-icon">📝</div>
+              <div className="habit-info">
+                <h3>Journal Writing</h3>
+                <p>Write for 5 minutes daily</p>
+                <div className="habit-streak">
+                  <span className="streak-number">3</span>
+                  <span className="streak-label">day streak</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Fun Facts */}
         <div className="profile-section">
           <div className="section-header">
