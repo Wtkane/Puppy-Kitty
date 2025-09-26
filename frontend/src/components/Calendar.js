@@ -335,9 +335,7 @@ const Calendar = ({ user }) => {
     <div className="calendar-container">
       <div className="calendar-header">
         <h1 className="calendar-title">
-          <span className="emoji">📅</span>
-          Google Calendar
-          <span className="emoji">💕</span>
+          Calendar
         </h1>
         <div className="calendar-actions">
           <div className="view-toggle">

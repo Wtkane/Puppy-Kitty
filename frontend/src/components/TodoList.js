@@ -36,7 +36,7 @@ const TodoList = ({ user }) => {
 
   const fetchTodos = async () => {
     try {
-      const response = await axios.get('/api/todos/my-todos');
+      const response = await axios.get('/api/todos/grouped-by-user');
       setTodos(response.data);
     } catch (error) {
       console.error('Error fetching todos:', error);
@@ -124,19 +124,27 @@ const TodoList = ({ user }) => {
     return categories.find(c => c.value === category) || categories[0];
   };
 
-  const filteredTodos = todos.filter(todo => {
+  const filteredTodos = todos.filter(userGroup => {
     if (filter === 'all') return true;
-    if (filter === 'completed') return todo.completed;
-    if (filter === 'pending') return !todo.completed;
+    if (filter === 'completed') return userGroup.todos.some(todo => todo.completed);
+    if (filter === 'pending') return userGroup.todos.some(todo => !todo.completed);
     if (filter === 'overdue') {
-      if (!todo.dueDate || todo.completed) return false;
-      return new Date(todo.dueDate) < new Date();
+      return userGroup.todos.some(todo => {
+        if (!todo.dueDate || todo.completed) return false;
+        return new Date(todo.dueDate) < new Date();
+      });
     }
-    return todo.priority === filter;
+    return userGroup.todos.some(todo => todo.priority === filter);
   });
 
-  const completedCount = todos.filter(todo => todo.completed).length;
-  const pendingCount = todos.length - completedCount;
+  const getTotalStats = () => {
+    const allTodos = todos.flatMap(userGroup => userGroup.todos);
+    const completedCount = allTodos.filter(todo => todo.completed).length;
+    const pendingCount = allTodos.length - completedCount;
+    return { total: allTodos.length, pending: pendingCount, completed: completedCount };
+  };
+
+  const stats = getTotalStats();
 
   if (loading) {
     return (
@@ -169,15 +177,15 @@ const TodoList = ({ user }) => {
       {/* Stats */}
       <div className="todos-stats">
         <div className="stat-item">
-          <span className="stat-number">{todos.length}</span>
+          <span className="stat-number">{stats.total}</span>
           <span className="stat-label">Total</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{pendingCount}</span>
+          <span className="stat-number">{stats.pending}</span>
           <span className="stat-label">Pending</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{completedCount}</span>
+          <span className="stat-number">{stats.completed}</span>
           <span className="stat-label">Completed</span>
         </div>
       </div>
@@ -320,7 +328,7 @@ const TodoList = ({ user }) => {
         </div>
       )}
 
-      <div className="todos-list">
+      <div className="todos-grid">
         {filteredTodos.length === 0 ? (
           <div className="no-todos">
             <span className="emoji">📝</span>
@@ -333,79 +341,118 @@ const TodoList = ({ user }) => {
             </p>
           </div>
         ) : (
-          filteredTodos.map(todo => {
-            const priorityInfo = getPriorityInfo(todo.priority);
-            const categoryInfo = getCategoryInfo(todo.category);
-            const isOverdue = todo.dueDate && !todo.completed && new Date(todo.dueDate) < new Date();
+          filteredTodos.map((userGroup, index) => {
+            const userTodos = userGroup.todos.filter(todo => {
+              if (filter === 'all') return true;
+              if (filter === 'completed') return todo.completed;
+              if (filter === 'pending') return !todo.completed;
+              if (filter === 'overdue') {
+                if (!todo.dueDate || todo.completed) return false;
+                return new Date(todo.dueDate) < new Date();
+              }
+              return todo.priority === filter;
+            });
+
+            if (userTodos.length === 0) return null;
 
             return (
-              <div
-                key={todo._id}
-                className={`todo-item ${todo.completed ? 'completed' : ''} ${isOverdue ? 'overdue' : ''}`}
-              >
-                <div className="todo-checkbox-container">
-                  <input
-                    type="checkbox"
-                    className="todo-checkbox"
-                    checked={todo.completed}
-                    onChange={() => handleToggleComplete(todo._id)}
-                  />
-                </div>
-
-                <div className="todo-content">
-                  <div className="todo-header">
-                    <h3 className={`todo-title ${todo.completed ? 'completed' : ''}`}>
-                      {todo.title}
-                    </h3>
-                    <div className="todo-badges">
-                      <span
-                        className="todo-priority"
-                        style={{ backgroundColor: priorityInfo.color }}
-                      >
-                        {priorityInfo.emoji} {priorityInfo.label}
-                      </span>
-                      <span className="todo-category">
-                        {categoryInfo.emoji} {categoryInfo.label}
-                      </span>
+              <div key={userGroup.user._id} className="user-section" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="user-header">
+                  <div className="user-info">
+                    <div className="user-avatar">
+                      {userGroup.user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="user-details">
+                      <h3 className="user-name">{userGroup.user.name}</h3>
+                      <div className="user-stats">
+                        <span className="user-stat">
+                          <span className="stat-emoji">📝</span>
+                          {userTodos.length} todos
+                        </span>
+                        <span className="user-stat">
+                          <span className="stat-emoji">✅</span>
+                          {userTodos.filter(t => t.completed).length} completed
+                        </span>
+                      </div>
                     </div>
                   </div>
-
-                  {todo.description && (
-                    <p className="todo-description">{todo.description}</p>
-                  )}
-
-                  <div className="todo-meta">
-                    {todo.dueDate && (
-                      <span className={`todo-due-date ${isOverdue ? 'overdue' : ''}`}>
-                        📅 Due: {formatDate(todo.dueDate)}
-                      </span>
-                    )}
-                    <span className="todo-creator">
-                      👤 Created by {todo.createdBy.name}
-                    </span>
-                    {todo.assignedTo && todo.assignedTo._id !== todo.createdBy._id && (
-                      <span className="todo-assignee">
-                        📋 Assigned to {todo.assignedTo.name}
-                      </span>
-                    )}
-                  </div>
                 </div>
 
-                <div className="todo-actions">
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleEdit(todo)}
-                    title="Edit todo"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleDelete(todo._id)}
-                    title="Delete todo"
-                  >
-                    🗑️
-                  </button>
+                <div className="user-todos">
+                  {userTodos.map(todo => {
+                    const priorityInfo = getPriorityInfo(todo.priority);
+                    const categoryInfo = getCategoryInfo(todo.category);
+                    const isOverdue = todo.dueDate && !todo.completed && new Date(todo.dueDate) < new Date();
+
+                    return (
+                      <div
+                        key={todo._id}
+                        className={`todo-item ${todo.completed ? 'completed' : ''} ${isOverdue ? 'overdue' : ''}`}
+                      >
+                        <div className="todo-checkbox-container">
+                          <input
+                            type="checkbox"
+                            className="todo-checkbox"
+                            checked={todo.completed}
+                            onChange={() => handleToggleComplete(todo._id)}
+                          />
+                        </div>
+
+                        <div className="todo-content">
+                          <div className="todo-header">
+                            <h4 className={`todo-title ${todo.completed ? 'completed' : ''}`}>
+                              {todo.title}
+                            </h4>
+                            <div className="todo-badges">
+                              <span
+                                className="todo-priority"
+                                style={{ backgroundColor: priorityInfo.color }}
+                              >
+                                {priorityInfo.emoji} {priorityInfo.label}
+                              </span>
+                              <span className="todo-category">
+                                {categoryInfo.emoji} {categoryInfo.label}
+                              </span>
+                            </div>
+                          </div>
+
+                          {todo.description && (
+                            <p className="todo-description">{todo.description}</p>
+                          )}
+
+                          <div className="todo-meta">
+                            {todo.dueDate && (
+                              <span className={`todo-due-date ${isOverdue ? 'overdue' : ''}`}>
+                                📅 Due: {formatDate(todo.dueDate)}
+                              </span>
+                            )}
+                            {todo.assignedTo && todo.assignedTo._id !== todo.createdBy._id && (
+                              <span className="todo-assignee">
+                                📋 Assigned to {todo.assignedTo.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="todo-actions">
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleEdit(todo)}
+                            title="Edit todo"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleDelete(todo._id)}
+                            title="Delete todo"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
