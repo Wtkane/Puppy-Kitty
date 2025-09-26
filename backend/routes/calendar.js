@@ -32,6 +32,45 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get all events grouped by user
+router.get('/grouped-by-user', auth, async (req, res) => {
+  try {
+    const events = await Calendar.find()
+      .populate('createdBy', 'name email')
+      .sort([
+        // Sort by date (earliest first)
+        ['date', 1],
+        // Then by start time
+        ['startTime', 1],
+        // Finally by creation date (newest first)
+        ['createdAt', -1]
+      ]);
+
+    // Group events by user
+    const userGroups = {};
+
+    events.forEach(event => {
+      const creatorId = event.createdBy._id.toString();
+      if (!userGroups[creatorId]) {
+        userGroups[creatorId] = {
+          user: event.createdBy,
+          events: []
+        };
+      }
+      userGroups[creatorId].events.push(event);
+    });
+
+    // Convert to array and sort by user name
+    const groupedEvents = Object.values(userGroups).sort((a, b) =>
+      a.user.name.localeCompare(b.user.name)
+    );
+
+    res.json(groupedEvents);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get events by date range
 router.get('/range/:start/:end', auth, async (req, res) => {
   try {
