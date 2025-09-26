@@ -21,6 +21,7 @@ const Calendar = ({ user }) => {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [groupedEvents, setGroupedEvents] = useState([]);
 
   const colors = [
     { value: '#ff6b6b', label: 'Red', emoji: '❤️' },
@@ -34,8 +35,18 @@ const Calendar = ({ user }) => {
 
   useEffect(() => {
     fetchEvents();
+    fetchGroupedEvents();
     fetchGoogleEvents();
   }, []);
+
+  const fetchGroupedEvents = async () => {
+    try {
+      const response = await axios.get('/api/calendar/grouped-by-user');
+      setGroupedEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching grouped events:', error);
+    }
+  };
 
   const fetchGoogleEvents = async () => {
     try {
@@ -192,19 +203,7 @@ const Calendar = ({ user }) => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const groupEventsByDate = (events) => {
-    const grouped = {};
-    events.forEach(event => {
-      const dateKey = new Date(event.date).toDateString();
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
-      }
-      grouped[dateKey].push(event);
-    });
-    return grouped;
-  };
 
-  const groupedEvents = groupEventsByDate(events);
 
   // Calendar grid helper functions
   const getDaysInMonth = (date) => {
@@ -599,58 +598,82 @@ const Calendar = ({ user }) => {
       {/* List View */}
       {viewMode === 'list' && (
         <div className="events-container">
-          {Object.keys(groupedEvents).length === 0 ? (
+          {groupedEvents.length === 0 ? (
             <div className="no-events">
               <span className="emoji">📅</span>
               <h3>No events yet</h3>
               <p>Click "Add Event" to create your first shared event!</p>
             </div>
           ) : (
-            Object.entries(groupedEvents).map(([dateKey, dayEvents]) => (
-              <div key={dateKey} className="event-day">
-                <h2 className="event-date">{formatDate(dateKey)}</h2>
-                <div className="event-list">
-                  {dayEvents.map(event => (
-                    <div
-                      key={event._id}
-                      className="event-card"
-                      style={{ borderLeftColor: event.color }}
-                    >
-                      <div className="event-header">
-                        <h3 className="event-title">{event.title}</h3>
-                        <div className="event-actions">
-                          <button
-                            className="btn-icon"
-                            onClick={() => handleEdit(event)}
-                            title="Edit event"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="btn-icon"
-                            onClick={() => handleDelete(event._id)}
-                            title="Delete event"
-                          >
-                            🗑️
-                          </button>
+            <div className="events-grid">
+              {groupedEvents.map((userGroup, index) => {
+                const userEvents = userGroup.events;
+
+                return (
+                  <div key={userGroup.user._id} className="user-section" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div className="user-header">
+                      <div className="user-info">
+                        <div className="user-avatar">
+                          {userGroup.user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="user-details">
+                          <h3 className="user-name">{userGroup.user.name}</h3>
+                          <div className="user-stats">
+                            <span className="user-stat">
+                              <span className="stat-emoji">📅</span>
+                              {userEvents.length} events
+                            </span>
+                          </div>
                         </div>
                       </div>
-
-                      <div className="event-details">
-                        <p className="event-time">
-                          {formatTime(event.startTime)} - {formatTime(event.endTime)}
-                          {event.isAllDay && ' (All day)'}
-                        </p>
-                        {event.description && (
-                          <p className="event-description">{event.description}</p>
-                        )}
-                        <p className="event-creator">Created by {event.createdBy.name}</p>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))
+
+                    <div className="user-events">
+                      {userEvents.map(event => (
+                        <div
+                          key={event._id}
+                          className="event-card"
+                          style={{ borderLeftColor: event.color }}
+                        >
+                          <div className="event-header">
+                            <h3 className="event-title">{event.title}</h3>
+                            <div className="event-actions">
+                              <button
+                                className="btn-icon"
+                                onClick={() => handleEdit(event)}
+                                title="Edit event"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                className="btn-icon"
+                                onClick={() => handleDelete(event._id)}
+                                title="Delete event"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="event-details">
+                            <p className="event-date">
+                              📅 {formatDate(event.date)}
+                            </p>
+                            <p className="event-time">
+                              {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                              {event.isAllDay && ' (All day)'}
+                            </p>
+                            {event.description && (
+                              <p className="event-description">{event.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
