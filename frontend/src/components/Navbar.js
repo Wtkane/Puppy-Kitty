@@ -37,6 +37,12 @@ const Navbar = ({ user, onLogout }) => {
           </Link>
         </li>
         <li>
+          <Link to="/special-dates" className={isActive('/special-dates')}>
+            <span>🎉</span>
+            Dates
+          </Link>
+        </li>
+        <li>
           <Link to="/profile" className={isActive('/profile')}>
             <span>👤</span>
             Profile

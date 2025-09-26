@@ -8,8 +8,12 @@
 }
 
 .view-toggle .btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 10px;
+  min-width: 120px;
+  justify-content: center;
 }
 
 /* Calendar View */
@@ -169,12 +173,219 @@
   padding: 2rem;
 }
 
+/* Filter Controls */
+.filter-controls {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-controls .form-label {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+}
+
+.filter-controls .form-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.filter-controls .form-input:focus {
+  outline: none;
+  border-color: #ff6b6b;
+}
+
+/* Event Cards */
+.event-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #ff6b6b;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.event-title {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.event-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  color: #666;
+}
+
+.btn-icon:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.event-details {
+  color: #666;
+  line-height: 1.5;
+}
+
+.event-details p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.event-date {
+  font-weight: 500;
+  color: #333;
+}
+
+.event-type {
+  font-weight: 500;
+  color: #ff6b6b;
+}
+
+.event-recurring {
+  font-style: italic;
+  color: #45b7d1;
+}
+
+.event-notification {
+  font-style: italic;
+  color: #96ceb4;
+}
+
+.days-until {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Upcoming View Sections */
+.today-section,
+.upcoming-section {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.today-section h2,
+.upcoming-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Event Day Groups */
+.event-day {
+  margin-bottom: 2rem;
+}
+
+.event-day:last-child {
+  margin-bottom: 0;
+}
+
+.event-date {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 /* Calendar Actions */
 .calendar-actions {
   display: flex;
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-actions .btn {
+  width: 100%;
+  max-width: 200px;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.calendar-actions .view-toggle {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-toggle .btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 10px;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .btn-google {
@@ -260,10 +471,46 @@
 
   .view-toggle {
     width: 100%;
+    max-width: 100%;
   }
 
   .view-toggle .btn {
-    flex: 1;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .calendar-actions .btn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .filter-controls .form-input {
+    min-width: auto;
+  }
+
+  .event-card {
+    padding: 0.75rem;
+  }
+
+  .event-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .event-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .days-until {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
   }
 }
 

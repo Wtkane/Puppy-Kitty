@@ -27,6 +27,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/puppy-kitty', {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/todos', require('./routes/todos'));
+app.use('/api/special-dates', require('./routes/specialDates'));
 
 // Health check
 app.get('/api/health', (req, res) => {

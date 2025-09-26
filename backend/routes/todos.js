@@ -47,6 +47,59 @@ router.get('/my-todos', auth, async (req, res) => {
   }
 });
 
+// Get all todos grouped by user
+router.get('/grouped-by-user', auth, async (req, res) => {
+  try {
+    const todos = await Todo.find()
+      .populate('createdBy', 'name email')
+      .populate('assignedTo', 'name email')
+      .sort([
+        // Sort by completion status (incomplete first)
+        ['completed', 1],
+        // Then by due date (urgent/overdue first, then by earliest due date)
+        ['dueDate', 1],
+        // Finally by creation date (newest first)
+        ['createdAt', -1]
+      ]);
+
+    // Group todos by user (both creators and assignees)
+    const userGroups = {};
+
+    todos.forEach(todo => {
+      // Add todo to creator's group
+      const creatorId = todo.createdBy._id.toString();
+      if (!userGroups[creatorId]) {
+        userGroups[creatorId] = {
+          user: todo.createdBy,
+          todos: []
+        };
+      }
+      userGroups[creatorId].todos.push(todo);
+
+      // Add todo to assignee's group if different from creator
+      if (todo.assignedTo && todo.assignedTo._id.toString() !== creatorId) {
+        const assigneeId = todo.assignedTo._id.toString();
+        if (!userGroups[assigneeId]) {
+          userGroups[assigneeId] = {
+            user: todo.assignedTo,
+            todos: []
+          };
+        }
+        userGroups[assigneeId].todos.push(todo);
+      }
+    });
+
+    // Convert to array and sort by user name
+    const groupedTodos = Object.values(userGroups).sort((a, b) =>
+      a.user.name.localeCompare(b.user.name)
+    );
+
+    res.json(groupedTodos);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Create new todo
 router.post('/', auth, async (req, res) => {
   try {
