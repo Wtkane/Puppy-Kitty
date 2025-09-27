@@ -6,8 +6,6 @@ import './Dashboard.css';
 const Dashboard = ({ user }) => {
   const [stats, setStats] = useState({
     totalEvents: 0,
-    totalTodos: 0,
-    completedTodos: 0,
     upcomingEvents: 0
   });
   const [recentEvents, setRecentEvents] = useState([]);
@@ -59,15 +57,9 @@ const Dashboard = ({ user }) => {
 
       console.log('Todays events count:', todaysEvents);
 
-      const completedTodos = todos.filter(todo => todo.completed).length;
-      const completionRate = todos.length > 0 ? Math.round((completedTodos / todos.length) * 100) : 0;
-
       setStats({
         totalEvents: todaysEvents, // Changed to show remaining events today instead of total
-        totalTodos: todos.length,
-        completedTodos,
-        upcomingEvents: todaysEvents,
-        completionRate
+        upcomingEvents: todaysEvents
       });
 
       // Get upcoming events (next 5 events, sorted by date) - only current user's events
@@ -105,7 +97,6 @@ const Dashboard = ({ user }) => {
     return (
       <div className="dashboard-container">
         <div className="loading-spinner">
-          <span>💕</span>
           <p>Loading your dashboard...</p>
         </div>
       </div>
@@ -117,9 +108,7 @@ const Dashboard = ({ user }) => {
       {/* Welcome Section */}
       <div className="welcome-section">
         <h1 className="welcome-title">
-          <span className="emoji">👋</span>
           Welcome back, {user.name}!
-          <span className="emoji">💕</span>
         </h1>
         <p className="welcome-subtitle">
           Here's what's happening in your Puppy & Kitty world today
@@ -129,31 +118,25 @@ const Dashboard = ({ user }) => {
       {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card events">
-          <div className="stat-icon">📅</div>
+          <div className="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+            </svg>
+          </div>
           <div className="stat-content">
             <h3>{stats.totalEvents}</h3>
-            <p>Remaining Events Today</p>
+            <p>Events Today</p>
           </div>
         </div>
 
-        <div className="stat-card todos">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <h3>{stats.totalTodos}</h3>
-            <p>Total Todos</p>
-          </div>
-        </div>
 
-        <div className="stat-card completed">
-          <div className="stat-icon">🎉</div>
-          <div className="stat-content">
-            <h3>{stats.completedTodos}</h3>
-            <p>Completed</p>
-          </div>
-        </div>
 
         <div className="stat-card upcoming">
-          <div className="stat-icon">⏰</div>
+          <div className="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
           <div className="stat-content">
             <h3>{stats.upcomingEvents}</h3>
             <p>Upcoming</p>
@@ -164,33 +147,31 @@ const Dashboard = ({ user }) => {
       {/* Quick Actions */}
       <div className="quick-actions">
         <h2 className="section-title">
-          <span className="emoji">⚡</span>
           Quick Actions
         </h2>
         <div className="actions-grid">
           <Link to="/calendar" className="action-card calendar">
-            <div className="action-icon">📅</div>
+            <div className="action-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+              </svg>
+            </div>
             <h3>Add Event</h3>
             <p>Schedule something special</p>
           </Link>
 
           <Link to="/todos" className="action-card todos">
-            <div className="action-icon">✅</div>
+            <div className="action-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                <path d="M9 13l2 2 4-4"/>
+              </svg>
+            </div>
             <h3>Add Todo</h3>
             <p>Create a new task</p>
           </Link>
 
-          <Link to="/calendar" className="action-card view-calendar">
-            <div className="action-icon">👀</div>
-            <h3>View Calendar</h3>
-            <p>See all your events</p>
-          </Link>
 
-          <Link to="/todos" className="action-card view-todos">
-            <div className="action-icon">📋</div>
-            <h3>View Todos</h3>
-            <p>Check your tasks</p>
-          </Link>
         </div>
       </div>
 
@@ -198,14 +179,17 @@ const Dashboard = ({ user }) => {
       <div className="recent-activity">
         <div className="activity-section">
           <h2 className="section-title">
-            <span className="emoji">🕐</span>
             Upcoming Events
           </h2>
           {recentEvents.length > 0 ? (
             <div className="activity-list">
               {recentEvents.map(event => (
                 <div key={event._id} className="activity-item">
-                  <div className="activity-icon">📅</div>
+                  <div className="activity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+                    </svg>
+                  </div>
                   <div className="activity-content">
                     <h4>{event.title}</h4>
                     <p>{formatDate(event.date)} at {formatTime(event.startTime)}</p>
@@ -221,14 +205,18 @@ const Dashboard = ({ user }) => {
 
         <div className="activity-section">
           <h2 className="section-title">
-            <span className="emoji">📝</span>
             Recent Todos
           </h2>
           {recentTodos.length > 0 ? (
             <div className="activity-list">
               {recentTodos.map(todo => (
                 <div key={todo._id} className="activity-item">
-                  <div className="activity-icon">✅</div>
+                  <div className="activity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                      <path d="M9 13l2 2 4-4"/>
+                    </svg>
+                  </div>
                   <div className="activity-content">
                     <h4 className={todo.completed ? 'completed' : ''}>{todo.title}</h4>
                     <p>Priority: {todo.priority} • Category: {todo.category}</p>
@@ -243,10 +231,7 @@ const Dashboard = ({ user }) => {
         </div>
       </div>
 
-      {/* Floating hearts */}
-      <div className="heart-decoration">💕</div>
-      <div className="heart-decoration">💖</div>
-      <div className="heart-decoration">💗</div>
+
     </div>
   );
 };

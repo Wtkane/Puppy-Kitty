@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+:root {
+  --primary-color: #ff6b6b;
+  --secondary-color: #4ecdc4;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -58,7 +63,7 @@ body {
 
 /* Navbar */
 .navbar {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  background: linear-gradient(135deg, var(--primary-color, #ff6b6b) 0%, var(--secondary-color, #4ecdc4) 100%);
   padding: 1rem 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;

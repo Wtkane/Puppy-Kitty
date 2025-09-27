@@ -19,7 +19,13 @@ const Navbar = ({ user, onLogout }) => {
   };
 
   return (
-    <nav className="navbar">
+    <nav
+      className="navbar"
+      style={{
+        '--primary-color': user.primaryColor || '#ff6b6b',
+        '--secondary-color': user.secondaryColor || '#4ecdc4'
+      }}
+    >
       <div className="navbar-brand">
         <span className="emoji">🐶</span>
         <span>Puppy & Kitty</span>
@@ -29,37 +35,36 @@ const Navbar = ({ user, onLogout }) => {
       <ul className="navbar-nav">
         <li>
           <Link to="/dashboard" className={isActive('/dashboard')}>
-            <span>🏠</span>
             Dashboard
           </Link>
         </li>
         <li>
           <Link to="/calendar" className={isActive('/calendar')}>
-            <span>📅</span>
             Calendar
           </Link>
         </li>
         <li>
           <Link to="/todos" className={isActive('/todos')}>
-            <span>✅</span>
             Todos
           </Link>
         </li>
         <li>
+          <Link to="/focus" className={isActive('/focus')}>
+            Focus
+          </Link>
+        </li>
+        <li>
           <Link to="/goals" className={isActive('/goals')}>
-            <span>🎯</span>
             Goals
           </Link>
         </li>
         <li>
           <Link to="/habits" className={isActive('/habits')}>
-            <span>🔥</span>
             Habits
           </Link>
         </li>
         <li>
           <Link to="/special-dates" className={isActive('/special-dates')}>
-            <span>🎉</span>
             Dates
           </Link>
         </li>

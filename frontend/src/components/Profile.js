@@ -38,6 +38,9 @@ const Profile = ({ user, setUser }) => {
       // Update user color preferences
       const response = await axios.put(`/api/auth/colors`, colorData);
       setUser(response.data);
+      // Update CSS custom properties globally
+      document.documentElement.style.setProperty('--primary-color', colorData.primaryColor);
+      document.documentElement.style.setProperty('--secondary-color', colorData.secondaryColor);
       setMessage('Color preferences updated successfully! 🎨');
       setMessageType('success');
     } catch (error) {
@@ -312,6 +315,14 @@ const Profile = ({ user, setUser }) => {
 
             <div className="color-preview">
               <h3>Preview</h3>
+              <div className="preview-navbar" style={{
+                background: `linear-gradient(135deg, ${colorData.primaryColor} 0%, ${colorData.secondaryColor} 100%)`,
+                height: '50px',
+                borderRadius: '10px',
+                marginBottom: '1rem',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+              }}>
+              </div>
               <div className="preview-buttons">
                 <button
                   type="button"

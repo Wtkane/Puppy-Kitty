@@ -14,6 +14,7 @@ import Profile from './components/Profile';
 import SpecialDates from './components/SpecialDates';
 import Goals from './components/Goals';
 import Habits from './components/Habits';
+import Focus from './components/Focus';
 
 // OAuth Callback Component
 const OAuthCallback = ({ onLogin }) => {
@@ -68,6 +69,11 @@ function App() {
     try {
       const response = await axios.get('/api/auth/me');
       setUser(response.data);
+      // Set CSS custom properties for user colors
+      if (response.data.primaryColor && response.data.secondaryColor) {
+        document.documentElement.style.setProperty('--primary-color', response.data.primaryColor);
+        document.documentElement.style.setProperty('--secondary-color', response.data.secondaryColor);
+      }
     } catch (error) {
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
@@ -80,12 +86,20 @@ function App() {
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(userData);
+    // Set CSS custom properties for user colors
+    if (userData.primaryColor && userData.secondaryColor) {
+      document.documentElement.style.setProperty('--primary-color', userData.primaryColor);
+      document.documentElement.style.setProperty('--secondary-color', userData.secondaryColor);
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    // Reset CSS custom properties to defaults
+    document.documentElement.style.setProperty('--primary-color', '#ff6b6b');
+    document.documentElement.style.setProperty('--secondary-color', '#4ecdc4');
   };
 
   if (loading) {
@@ -124,6 +138,10 @@ function App() {
             <Route
               path="/todos"
               element={user ? <TodoList user={user} /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/focus"
+              element={user ? <Focus user={user} /> : <Navigate to="/login" />}
             />
             <Route
               path="/special-dates"
