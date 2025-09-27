@@ -45,13 +45,25 @@ const Dashboard = ({ user }) => {
       // Filter events to only include current user's events
       const userEvents = events.filter(event => event.createdBy._id === user._id);
 
-      // Get today's events, sorted by start time
+      // Get today's events that haven't ended yet, sorted by start time
       const todaysEventsArray = userEvents.filter(event => {
         const eventDate = new Date(event.date);
         // Compare date parts only (YYYY-MM-DD) to avoid timezone issues
         const eventDateString = eventDate.toISOString().split('T')[0];
         const todayString = today.toISOString().split('T')[0];
-        return eventDateString === todayString;
+
+        // Only include events for today
+        if (eventDateString !== todayString) return false;
+
+        // For today's events, check if they haven't ended yet
+        if (!event.endTime) return true; // Include if no end time (all-day or no time specified)
+
+        const [endHours, endMinutes] = event.endTime.split(':');
+        const eventEndTime = new Date(eventDate);
+        eventEndTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+
+        // Include if current time is before or at end time
+        return now <= eventEndTime;
       }).sort((a, b) => {
         // Sort by start time
         if (a.startTime && b.startTime) {
@@ -114,12 +126,49 @@ const Dashboard = ({ user }) => {
         upcomingEvents: urgentTodos
       });
 
-      // Get upcoming events (next 5 events, sorted by date) - only current user's events
+      // Get upcoming events (next 5 events, sorted by date and time) - only current user's events
       const currentTime = new Date();
       const currentDate = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate());
       const upcomingEventsList = userEvents
-        .filter(event => new Date(event.date) >= currentDate)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .filter(event => {
+          const eventDate = new Date(event.date);
+          const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+
+          // If event is in the future, include it
+          if (eventDateOnly > currentDate) return true;
+
+          // If event is today, check if it hasn't started yet or is currently happening
+          if (eventDateOnly.getTime() === currentDate.getTime()) {
+            if (!event.startTime) return true; // All-day events today
+            const [hours, minutes] = event.startTime.split(':');
+            const eventStartTime = new Date(eventDate);
+            eventStartTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            // Include if event hasn't ended yet (current time is before end time)
+            if (event.endTime) {
+              const [endHours, endMinutes] = event.endTime.split(':');
+              const eventEndTime = new Date(eventDate);
+              eventEndTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+              return currentTime <= eventEndTime;
+            }
+            // If no end time, include if it hasn't started yet
+            return currentTime <= eventStartTime;
+          }
+
+          // Exclude past events
+          return false;
+        })
+        .sort((a, b) => {
+          // Sort by date first, then by start time
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          if (dateA.getTime() !== dateB.getTime()) {
+            return dateA - dateB;
+          }
+          if (a.startTime && b.startTime) {
+            return a.startTime.localeCompare(b.startTime);
+          }
+          return 0;
+        })
         .slice(0, 5);
 
       // Get recent items (last 5 incomplete todos, but show only 3)
