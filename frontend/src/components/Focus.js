@@ -565,14 +565,6 @@ const Focus = ({ user }) => {
                     <p className="stat-label">Focus sessions</p>
                   </div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-icon">🔥</div>
-                  <div className="stat-content">
-                    <h3>Current Streak</h3>
-                    <p className="stat-value">{stats.currentStreak} days</p>
-                    <p className="stat-label">Consecutive days</p>
-                  </div>
-                </div>
               </div>
 
               {/* Timeline Card */}

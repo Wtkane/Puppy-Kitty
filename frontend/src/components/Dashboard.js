@@ -5,8 +5,8 @@ import './Dashboard.css';
 
 const Dashboard = ({ user }) => {
   const [stats, setStats] = useState({
-    totalEvents: 0,
-    upcomingEvents: 0
+    todaysEvents: [],
+    upcomingEvents: []
   });
   const [recentEvents, setRecentEvents] = useState([]);
   const [recentTodos, setRecentTodos] = useState([]);
@@ -45,21 +45,73 @@ const Dashboard = ({ user }) => {
       // Filter events to only include current user's events
       const userEvents = events.filter(event => event.createdBy._id === user._id);
 
-      const todaysEvents = userEvents.filter(event => {
+      // Get today's events, sorted by start time
+      const todaysEventsArray = userEvents.filter(event => {
         const eventDate = new Date(event.date);
         // Compare date parts only (YYYY-MM-DD) to avoid timezone issues
         const eventDateString = eventDate.toISOString().split('T')[0];
         const todayString = today.toISOString().split('T')[0];
-        const isToday = eventDateString === todayString;
-        console.log(`Event "${event.title}" date: ${eventDate.toISOString()}, dateString: ${eventDateString}, todayString: ${todayString}, isToday: ${isToday}`);
-        return isToday;
-      }).length;
+        return eventDateString === todayString;
+      }).sort((a, b) => {
+        // Sort by start time
+        if (a.startTime && b.startTime) {
+          return a.startTime.localeCompare(b.startTime);
+        }
+        return 0;
+      }).slice(0, 2); // Take first 2 (current and next)
 
-      console.log('Todays events count:', todaysEvents);
+      // Get upcoming events (not today), sorted by date and time, take first 2
+      const upcomingEventsArray = userEvents
+        .filter(event => {
+          const eventDate = new Date(event.date);
+          const eventDateString = eventDate.toISOString().split('T')[0];
+          const todayString = today.toISOString().split('T')[0];
+          return eventDateString > todayString; // Future dates only
+        })
+        .sort((a, b) => {
+          // Sort by date first, then by start time
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          if (dateA.getTime() !== dateB.getTime()) {
+            return dateA - dateB;
+          }
+          if (a.startTime && b.startTime) {
+            return a.startTime.localeCompare(b.startTime);
+          }
+          return 0;
+        })
+        .slice(0, 2); // Take 2 most urgent
+
+      // Get most urgent 2 incomplete todos (by priority and due date)
+      const urgentTodos = todos
+        .filter(todo => !todo.completed)
+        .sort((a, b) => {
+          // Sort by priority first (High > Medium > Low), then by due date
+          const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+          const priorityA = priorityOrder[a.priority] || 0;
+          const priorityB = priorityOrder[b.priority] || 0;
+
+          if (priorityA !== priorityB) {
+            return priorityB - priorityA; // Higher priority first
+          }
+
+          // If same priority, sort by due date (earliest first)
+          if (a.dueDate && b.dueDate) {
+            return new Date(a.dueDate) - new Date(b.dueDate);
+          }
+          if (a.dueDate && !b.dueDate) return -1;
+          if (!a.dueDate && b.dueDate) return 1;
+          return 0;
+        })
+        .slice(0, 2); // Take 2 most urgent
+
+      console.log('Todays events:', todaysEventsArray);
+      console.log('Upcoming events:', upcomingEventsArray);
+      console.log('Urgent todos:', urgentTodos);
 
       setStats({
-        totalEvents: todaysEvents, // Changed to show remaining events today instead of total
-        upcomingEvents: todaysEvents
+        todaysEvents: todaysEventsArray,
+        upcomingEvents: urgentTodos
       });
 
       // Get upcoming events (next 5 events, sorted by date) - only current user's events
@@ -70,9 +122,9 @@ const Dashboard = ({ user }) => {
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .slice(0, 5);
 
-      // Get recent items (last 5, but show only 3)
+      // Get recent items (last 5 incomplete todos, but show only 3)
       setRecentEvents(upcomingEventsList);
-      setRecentTodos(todos.slice(-5).reverse());
+      setRecentTodos(todos.filter(todo => !todo.completed).slice(-5).reverse());
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -105,14 +157,9 @@ const Dashboard = ({ user }) => {
 
   return (
     <div className="dashboard-container">
-      {/* Welcome Section */}
-      <div className="welcome-section">
-        <h1 className="welcome-title">
-          Welcome back, {user.name}!
-        </h1>
-        <p className="welcome-subtitle">
-          Here's what's happening in your Puppy & Kitty world today
-        </p>
+      {/* Today's Message */}
+      <div className="today-message">
+        <h2>Today is {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Let's make it amazing!</h2>
       </div>
 
       {/* Stats Cards */}
@@ -124,8 +171,26 @@ const Dashboard = ({ user }) => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>{stats.totalEvents}</h3>
-            <p>Events Today</p>
+            {stats.todaysEvents.length > 0 ? (
+              <div>
+                {stats.todaysEvents.map((event, index) => (
+                  <div key={event._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                    <h4 style={{ fontSize: '1.2rem', margin: '0', fontWeight: '700' }}>
+                      {event.title}
+                    </h4>
+                    <p style={{ fontSize: '0.9rem', margin: '0', opacity: 0.8 }}>
+                      {formatTime(event.startTime)}
+                      {event.endTime && ` - ${formatTime(event.endTime)}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <h3 style={{ fontSize: '2rem', margin: '0' }}>0</h3>
+                <p>Events Today</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -138,40 +203,27 @@ const Dashboard = ({ user }) => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>{stats.upcomingEvents}</h3>
-            <p>Upcoming</p>
+            {stats.upcomingEvents.length > 0 ? (
+              <div>
+                {stats.upcomingEvents.map((todo, index) => (
+                  <div key={todo._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <h4 style={{ fontSize: '1.1rem', margin: '0', fontWeight: '700' }}>
+                      {todo.title}
+                    </h4>
+                    <p style={{ fontSize: '0.8rem', margin: '0', opacity: 0.8 }}>
+                      {todo.priority}
+                      {todo.dueDate && ` • Due ${formatDate(todo.dueDate)}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <h3 style={{ fontSize: '2rem', margin: '0' }}>0</h3>
+                <p>Upcoming</p>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <h2 className="section-title">
-          Quick Actions
-        </h2>
-        <div className="actions-grid">
-          <Link to="/calendar" className="action-card calendar">
-            <div className="action-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
-              </svg>
-            </div>
-            <h3>Add Event</h3>
-            <p>Schedule something special</p>
-          </Link>
-
-          <Link to="/todos" className="action-card todos">
-            <div className="action-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
-                <path d="M9 13l2 2 4-4"/>
-              </svg>
-            </div>
-            <h3>Add Todo</h3>
-            <p>Create a new task</p>
-          </Link>
-
-
         </div>
       </div>
 

@@ -386,26 +386,25 @@ const Calendar = ({ user }) => {
           Calendar
         </h1>
         <div className="calendar-controls">
-          <div className="control-group">
-            <div className="view-toggle">
-              <button
-                className={`btn btn-small ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setViewMode('list')}
-                title="List View"
-              >
-                <span>📋</span>
-                List
-              </button>
-              <button
-                className={`btn btn-small ${viewMode === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setViewMode('calendar')}
-                title="Calendar View"
-              >
-                <span>📅</span>
-                Calendar
-              </button>
+          <div className="action-buttons">
+            <div className="view-controls">
+              <div className="view-toggle">
+                <button
+                  className={`btn btn-small ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setViewMode('list')}
+                  title="List View"
+                >
+                  List
+                </button>
+                <button
+                  className={`btn btn-small ${viewMode === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setViewMode('calendar')}
+                  title="Calendar View"
+                >
+                  Calendar
+                </button>
+              </div>
             </div>
-
             {viewMode === 'list' && (
               <div className="filter-dropdown">
                 <select
@@ -413,39 +412,37 @@ const Calendar = ({ user }) => {
                   value={eventFilter}
                   onChange={(e) => setEventFilter(e.target.value)}
                 >
-                  <option value="today">📅 Today</option>
-                  <option value="week">📆 This Week</option>
-                  <option value="month">🗓️ This Month</option>
-                  <option value="all">📋 All Events</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="all">All Events</option>
                 </select>
               </div>
             )}
-          </div>
-
-          <div className="action-buttons">
-            <button
-              className="btn btn-secondary btn-small"
-              onClick={syncGoogleEvents}
-              title="Sync Google Calendar events"
-            >
-              <span>🔄</span>
-              Sync
-            </button>
-            <button
-              className="btn btn-danger btn-small"
-              onClick={clearAllEvents}
-              title="Clear all events"
-            >
-              <span>🗑️</span>
-              Clear All
-            </button>
-            <button
-              className="btn btn-primary btn-small"
-              onClick={() => setShowForm(true)}
-            >
-              <span>➕</span>
-              Add Event
-            </button>
+            <div className="primary-actions">
+              <button
+                className="btn btn-secondary btn-small"
+                onClick={syncGoogleEvents}
+                title="Sync Google Calendar events"
+              >
+                Sync
+              </button>
+              <button
+                className="btn btn-primary btn-small"
+                onClick={() => setShowForm(true)}
+              >
+                Add Event
+              </button>
+            </div>
+            <div className="destructive-actions">
+              <button
+                className="btn btn-danger btn-small"
+                onClick={clearAllEvents}
+                title="Clear all events"
+              >
+                Clear All
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -569,7 +566,6 @@ const Calendar = ({ user }) => {
                     onClick={() => createGoogleEvent(formData)}
                     disabled={!formData.title || !formData.date || !formData.startTime || !formData.endTime}
                   >
-                    <span>📅</span>
                     Add to Google
                   </button>
                   <button type="submit" className="btn btn-primary">

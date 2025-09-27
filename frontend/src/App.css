@@ -73,6 +73,12 @@ body {
   position: relative;
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .navbar-brand {
   font-size: 1.8rem;
   font-weight: 700;
@@ -119,7 +125,6 @@ body {
   align-items: center;
   gap: 1rem;
   position: relative;
-  margin-left: auto;
 }
 
 .user-avatar {

@@ -1036,8 +1036,8 @@
 /* Statistics Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
   margin-bottom: 3rem;
 }
 
@@ -1050,7 +1050,9 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 .stat-card:hover {
@@ -1061,23 +1063,27 @@
 .stat-card::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #4ecdc4, #96ceb4, #ffeaa7);
-  border-radius: 20px 20px 0 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(135deg, #4ecdc4, #96ceb4, #ffeaa7);
+  border-radius: 0 4px 4px 0;
 }
 
 .stat-icon {
   font-size: 3rem;
-  margin-bottom: 1rem;
-  display: block;
   opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+  text-align: left;
 }
 
 .stat-content h3 {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #333;
   margin-bottom: 0.5rem;
