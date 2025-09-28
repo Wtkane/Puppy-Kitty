@@ -57,8 +57,11 @@ const Profile = ({ user, setUser, onLogout }) => {
     setMessage('');
 
     try {
+      const token = localStorage.getItem('token');
       // Update user profile
-      const response = await axios.put(`/api/auth/profile`, formData);
+      const response = await axios.put(`/api/auth/profile`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setUser(response.data);
       setMessage('Profile updated successfully! 💕');
       setMessageType('success');
@@ -256,65 +259,62 @@ const Profile = ({ user, setUser, onLogout }) => {
         </div>
 
         {/* Color Customization */}
-        <div className="profile-section">
-          <div className="section-header">
-            <h2 className="section-title">
+        <div className="profile-section color-customization-section">
+          <div className="section-header color-section-header">
+            <h2 className="section-title color-section-title">
               <span className="emoji">🎨</span>
               Color Preferences
             </h2>
+            <p className="section-subtitle">Customize your app's color theme</p>
           </div>
 
-          <form onSubmit={handleColorSubmit} className="profile-form">
-            <div className="form-group">
-              <label className="form-label" htmlFor="primaryColor">
-                Primary Color
-              </label>
-              <div className="color-input-group">
-                <input
-                  type="color"
-                  id="primaryColor"
-                  name="primaryColor"
-                  className="color-input"
-                  value={colorData.primaryColor}
-                  onChange={handleColorChange}
-                />
-                <input
-                  type="text"
-                  className="form-input color-text-input"
-                  value={colorData.primaryColor}
-                  onChange={handleColorChange}
-                  name="primaryColor"
-                  placeholder="#ff6b6b"
-                />
+          <form onSubmit={handleColorSubmit} className="profile-form color-form">
+            <div className="simple-color-pickers">
+              <div className="color-picker-item">
+                <label htmlFor="primaryColor">Primary Color:</label>
+                <div className="color-input-row">
+                  <input
+                    type="color"
+                    id="primaryColor"
+                    name="primaryColor"
+                    value={colorData.primaryColor}
+                    onChange={handleColorChange}
+                  />
+                  <input
+                    type="text"
+                    className="color-text-input"
+                    value={colorData.primaryColor}
+                    onChange={handleColorChange}
+                    name="primaryColor"
+                    placeholder="#ff6b6b"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="secondaryColor">
-                Secondary Color
-              </label>
-              <div className="color-input-group">
-                <input
-                  type="color"
-                  id="secondaryColor"
-                  name="secondaryColor"
-                  className="color-input"
-                  value={colorData.secondaryColor}
-                  onChange={handleColorChange}
-                />
-                <input
-                  type="text"
-                  className="form-input color-text-input"
-                  value={colorData.secondaryColor}
-                  onChange={handleColorChange}
-                  name="secondaryColor"
-                  placeholder="#4ecdc4"
-                />
+              <div className="color-picker-item">
+                <label htmlFor="secondaryColor">Secondary Color:</label>
+                <div className="color-input-row">
+                  <input
+                    type="color"
+                    id="secondaryColor"
+                    name="secondaryColor"
+                    value={colorData.secondaryColor}
+                    onChange={handleColorChange}
+                  />
+                  <input
+                    type="text"
+                    className="color-text-input"
+                    value={colorData.secondaryColor}
+                    onChange={handleColorChange}
+                    name="secondaryColor"
+                    placeholder="#4ecdc4"
+                  />
+                </div>
               </div>
             </div>
 
             <div className="color-preview">
-              <h3>Preview</h3>
+              <h3>Live Preview</h3>
               <div className="preview-navbar" style={{
                 background: `linear-gradient(135deg, ${colorData.primaryColor} 0%, ${colorData.secondaryColor} 100%)`,
                 height: '50px',
@@ -341,23 +341,26 @@ const Profile = ({ user, setUser, onLogout }) => {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span className="loading-spinner">🎨</span>
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <span>🎨</span>
-                  Update Colors
-                </>
-              )}
-            </button>
+            <div className="color-update-section">
+              <button
+                type="submit"
+                className="btn btn-primary color-update-btn"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="loading-spinner">🎨</span>
+                    <span>Updating Colors...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="btn-icon">✨</span>
+                    <span>Update Color Theme</span>
+                  </>
+                )}
+              </button>
+              <p className="update-description">Your color preferences will be saved and applied immediately</p>
+            </div>
           </form>
         </div>
 
@@ -365,7 +368,7 @@ const Profile = ({ user, setUser, onLogout }) => {
         <div className="profile-section">
           <div className="section-header">
             <h2 className="section-title">
-              <span className="emoji">📊</span>
+              <span className="emoji">�</span>
               Account Statistics
             </h2>
           </div>
@@ -428,7 +431,7 @@ const Profile = ({ user, setUser, onLogout }) => {
 
       {/* Floating hearts */}
       <div className="heart-decoration">💕</div>
-      <div className="heart-decoration">💖</div>
+      <div className="heart-decoration">�</div>
       <div className="heart-decoration">💗</div>
       <div className="heart-decoration">�</div>
     </div>

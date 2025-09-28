@@ -58,11 +58,10 @@ const GroupSelector = ({ user, onGroupChange }) => {
   return (
     <div className="group-selector">
       <div className="group-selector-dropdown">
-        <button 
+        <button
           className="group-selector-button"
           disabled={loading}
         >
-          <span className="group-icon">👥</span>
           <span className="group-name">{getCurrentGroupName()}</span>
           <span className="dropdown-arrow">▼</span>
         </button>

@@ -41,31 +41,6 @@ const Calendar = ({ user }) => {
     fetchGoogleEvents();
   }, [user]); // Add user as dependency to refresh when group changes
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const dropdowns = document.querySelectorAll('.dropdown-menu');
-      dropdowns.forEach(dropdown => {
-        if (!dropdown.contains(event.target) && !event.target.closest('.btn-dropdown')) {
-          dropdown.style.display = 'none';
-        }
-      });
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Helper function to close all dropdowns
-  const closeAllDropdowns = () => {
-    const dropdowns = document.querySelectorAll('.dropdown-menu');
-    dropdowns.forEach(dropdown => {
-      dropdown.style.display = 'none';
-    });
-  };
-
   const fetchGroupedEvents = async () => {
     try {
       const response = await axios.get('/api/calendar');

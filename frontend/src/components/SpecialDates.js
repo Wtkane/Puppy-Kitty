@@ -213,6 +213,47 @@ const SpecialDates = ({ user }) => {
           Special Dates
         </h1>
         <div className="special-dates-controls">
+          {/* Filter Type Dropdown */}
+          <div className="dropdown-container">
+            <div className="dropdown">
+              <button
+                className="btn btn-dropdown btn-small"
+                onClick={() => {
+                  const dropdown = document.querySelector('.filter-dropdown');
+                  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }}
+              >
+                {filterType === 'all' ? '🔍 All Types' :
+                 types.find(t => t.value === filterType)?.emoji + ' ' +
+                 types.find(t => t.value === filterType)?.label}
+                <span className="dropdown-arrow">▼</span>
+              </button>
+              <div className="dropdown-menu filter-dropdown">
+                <button
+                  className={`dropdown-item ${filterType === 'all' ? 'active' : ''}`}
+                  onClick={() => {
+                    setFilterType('all');
+                    document.querySelector('.filter-dropdown').style.display = 'none';
+                  }}
+                >
+                  🔍 All Types
+                </button>
+                {types.map(type => (
+                  <button
+                    key={type.value}
+                    className={`dropdown-item ${filterType === type.value ? 'active' : ''}`}
+                    onClick={() => {
+                      setFilterType(type.value);
+                      document.querySelector('.filter-dropdown').style.display = 'none';
+                    }}
+                  >
+                    {type.emoji} {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* View Mode Dropdown */}
           <div className="dropdown-container">
             <div className="dropdown">
@@ -527,21 +568,6 @@ const SpecialDates = ({ user }) => {
       {/* List View */}
       {viewMode === 'list' && (
         <div className="events-container">
-          <div className="filter-controls">
-            <label className="form-label">Filter by type:</label>
-            <select
-              className="form-input"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="all">All Types</option>
-              {types.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.emoji} {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
 
           {Object.keys(groupedSpecialDates).length === 0 ? (
             <div className="no-events">
