@@ -36,8 +36,8 @@ const TodoList = ({ user }) => {
 
   const fetchTodos = async () => {
     try {
-      const response = await axios.get('/api/todos/grouped-by-user');
-      setTodos(response.data);
+      const response = await axios.get('/api/todos/my-todos');
+      setTodos([{ user, todos: response.data }]);
     } catch (error) {
       console.error('Error fetching todos:', error);
     } finally {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './Profile.css';
 
-const Profile = ({ user, setUser }) => {
+const Profile = ({ user, setUser, onLogout }) => {
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email
@@ -401,8 +401,28 @@ const Profile = ({ user, setUser }) => {
           </div>
         </div>
 
+        {/* Account Actions */}
+        <div className="profile-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="emoji">⚙️</span>
+              Account Actions
+            </h2>
+          </div>
 
-
+          <div className="account-actions">
+            <button
+              className="btn btn-danger logout-btn"
+              onClick={onLogout}
+            >
+              <span>🚪</span>
+              Log Out
+            </button>
+            <p className="logout-description">
+              Sign out of your account. You'll need to log in again to access your data.
+            </p>
+          </div>
+        </div>
 
       </div>
 

@@ -31,6 +31,31 @@ router.get('/my-todos', auth, async (req, res) => {
   }
 });
 
+// Get todos grouped by user
+router.get('/grouped-by-user', auth, async (req, res) => {
+  try {
+    const todos = await Todo.find().populate('createdBy', 'name email').populate('assignedTo', 'name email');
+
+    // Group todos by user
+    const groupedTodos = {};
+    todos.forEach(todo => {
+      const userId = todo.createdBy._id.toString();
+      if (!groupedTodos[userId]) {
+        groupedTodos[userId] = {
+          user: todo.createdBy,
+          todos: []
+        };
+      }
+      groupedTodos[userId].todos.push(todo);
+    });
+
+    const result = Object.values(groupedTodos);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 
 
 // Create new todo

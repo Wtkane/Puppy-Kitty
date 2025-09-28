@@ -5,6 +5,7 @@ import './App.css';
 
 // Components
 import Navbar from './components/Navbar';
+import LeftMenu from './components/LeftMenu';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
@@ -54,6 +55,7 @@ const OAuthCallback = ({ onLogin }) => {
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -97,9 +99,18 @@ function App() {
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    setIsMenuOpen(false);
     // Reset CSS custom properties to defaults
     document.documentElement.style.setProperty('--primary-color', '#ff6b6b');
     document.documentElement.style.setProperty('--secondary-color', '#4ecdc4');
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
   };
 
   if (loading) {
@@ -116,7 +127,21 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {user && <Navbar user={user} onLogout={handleLogout} />}
+        {user && (
+          <>
+            <Navbar
+              user={user}
+              onLogout={handleLogout}
+              onMenuToggle={toggleMenu}
+              isMenuOpen={isMenuOpen}
+            />
+            <LeftMenu
+              isOpen={isMenuOpen}
+              onClose={closeMenu}
+              user={user}
+            />
+          </>
+        )}
         <main className="main-content">
           <Routes>
             <Route
@@ -157,7 +182,7 @@ function App() {
             />
             <Route
               path="/profile"
-              element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />}
+              element={user ? <Profile user={user} setUser={setUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
             />
             <Route
               path="/auth/callback"
