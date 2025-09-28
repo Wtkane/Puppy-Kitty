@@ -308,21 +308,32 @@ const Focus = ({ user }) => {
   };
 
   const calculateStats = () => {
-    if (!stats) return { totalTime: '0h 0m', sessionsCount: 0, currentStreak: 0 };
-    
-    const personalStats = stats.personalStats;
-    const totalSeconds = personalStats.totalTime;
+    if (!stats) {
+      return {
+        totalTime: '0h 0m',
+        sessionsCount: 0,
+        todoTime: '0m',
+        goalTime: '0m',
+        habitTime: '0m',
+        averageSession: '0m',
+        longestSession: '0m'
+      };
+    }
+
+    // The backend returns personalStats at the top level, not nested
+    const personalStats = stats.personalStats || stats;
+    const totalSeconds = personalStats.totalTime || 0;
     const totalHours = Math.floor(totalSeconds / 3600);
     const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
 
     return {
       totalTime: `${totalHours}h ${totalMinutes}m`,
-      sessionsCount: personalStats.totalSessions,
-      todoTime: formatDuration(personalStats.todoTime),
-      goalTime: formatDuration(personalStats.goalTime),
-      habitTime: formatDuration(personalStats.habitTime),
-      averageSession: formatDuration(personalStats.averageSession),
-      longestSession: formatDuration(personalStats.longestSession)
+      sessionsCount: personalStats.totalSessions || 0,
+      todoTime: formatDuration(personalStats.todoTime || 0),
+      goalTime: formatDuration(personalStats.goalTime || 0),
+      habitTime: formatDuration(personalStats.habitTime || 0),
+      averageSession: formatDuration(personalStats.averageSession || 0),
+      longestSession: formatDuration(personalStats.longestSession || 0)
     };
   };
 
@@ -338,14 +349,29 @@ const Focus = ({ user }) => {
         return sessionDate >= today && sessionDate < tomorrow;
       })
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .map(session => ({
-        ...session,
-        time: new Date(session.createdAt).toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        })
-      }));
+      .map(session => {
+        // Get the task title from various possible property names
+        let taskTitle = 'Unknown Task';
+        if (session.taskTitle) {
+          taskTitle = session.taskTitle;
+        } else if (session.taskName) {
+          taskTitle = session.taskName;
+        } else if (session.title) {
+          taskTitle = session.title;
+        } else if (session.name) {
+          taskTitle = session.name;
+        }
+
+        return {
+          ...session,
+          taskTitle,
+          time: new Date(session.createdAt).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          })
+        };
+      });
   };
 
   const calculatedStats = calculateStats();
@@ -382,6 +408,12 @@ const Focus = ({ user }) => {
           ⏰ Focus Timer
         </button>
         <button
+          className={`view-btn ${currentView === 'trophies' ? 'active' : ''}`}
+          onClick={() => setCurrentView('trophies')}
+        >
+          🏆 Trophies
+        </button>
+        <button
           className={`view-btn ${currentView === 'stats' ? 'active' : ''}`}
           onClick={() => {
             setCurrentView('stats');
@@ -391,13 +423,7 @@ const Focus = ({ user }) => {
             }
           }}
         >
-          📊 Statistics & Trophies
-        </button>
-        <button
-          className="view-btn btn-secondary"
-          onClick={() => setShowCustomEntry(true)}
-        >
-          ➕ Add Custom Time
+          📊 Statistics
         </button>
       </div>
 
@@ -568,6 +594,148 @@ const Focus = ({ user }) => {
               </div>
             )}
           </>
+        ) : currentView === 'trophies' ? (
+          /* Dedicated Trophies View */
+          <div className="trophies-view">
+            {/* Trophy Collection Header */}
+            <div className="trophy-collection-header">
+              <h2>🏆 Your Trophy Collection</h2>
+              <p className="trophy-subtitle">Earn trophies by completing focus sessions and achieving milestones!</p>
+              <div className="trophy-stats-summary">
+                <div className="trophy-stat-item">
+                  <span className="trophy-stat-number">{trophies.length}</span>
+                  <span className="trophy-stat-label">Total Trophies</span>
+                </div>
+                <div className="trophy-stat-item">
+                  <span className="trophy-stat-number">
+                    {trophies.filter(t => t.tier === 'legendary').length}
+                  </span>
+                  <span className="trophy-stat-label">Legendary</span>
+                </div>
+                <div className="trophy-stat-item">
+                  <span className="trophy-stat-number">
+                    {trophies.filter(t => t.tier === 'gold').length}
+                  </span>
+                  <span className="trophy-stat-label">Gold</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Trophy Gallery */}
+            <div className="trophy-gallery-enhanced">
+              {trophies.length > 0 ? (
+                <>
+                  <div className="trophy-grid-enhanced">
+                    {trophies.map(trophy => (
+                      <div key={trophy._id} className={`trophy-card-enhanced ${trophy.tier}`}>
+                        <div className="trophy-visual">
+                          <div className="trophy-icon-enhanced" style={{ color: getTrophyTier(trophy.tier) }}>
+                            {trophy.trophyIcon}
+                          </div>
+                          <div className="trophy-glow" style={{ backgroundColor: getTrophyTier(trophy.tier) }}></div>
+                        </div>
+                        <div className="trophy-info">
+                          <h3 className="trophy-name">{trophy.trophyName}</h3>
+                          <p className="trophy-description">{trophy.trophyDescription}</p>
+                          <div className="trophy-meta">
+                            <span className="trophy-tier-badge" style={{ backgroundColor: getTrophyTier(trophy.tier) }}>
+                              {trophy.tier.toUpperCase()}
+                            </span>
+                            <span className="trophy-date">
+                              {new Date(trophy.unlockedAt || trophy.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="no-trophies-enhanced">
+                  <div className="empty-state">
+                    <span className="empty-icon">🏆</span>
+                    <h3>No Trophies Yet!</h3>
+                    <p>Complete focus sessions to start earning trophies and unlock achievements!</p>
+                    <div className="trophy-suggestions">
+                      <div className="suggestion-item">
+                        <span className="suggestion-icon">⏰</span>
+                        <span className="suggestion-text">Complete your first focus session</span>
+                      </div>
+                      <div className="suggestion-item">
+                        <span className="suggestion-icon">🔥</span>
+                        <span className="suggestion-text">Build a focus streak</span>
+                      </div>
+                      <div className="suggestion-item">
+                        <span className="suggestion-icon">📈</span>
+                        <span className="suggestion-text">Focus for extended periods</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Trophy Categories */}
+            {trophies.length > 0 && (
+              <div className="trophy-categories">
+                <h3>🏆 Trophies by Category</h3>
+                <div className="categories-grid">
+                  {['bronze', 'silver', 'gold', 'diamond', 'legendary'].map(tier => {
+                    const tierTrophies = trophies.filter(t => t.tier === tier);
+                    if (tierTrophies.length === 0) return null;
+
+                    return (
+                      <div key={tier} className="trophy-category">
+                        <div className="category-header" style={{ backgroundColor: getTrophyTier(tier) }}>
+                          <h4>{tier.charAt(0).toUpperCase() + tier.slice(1)} Trophies</h4>
+                          <span className="category-count">{tierTrophies.length}</span>
+                        </div>
+                        <div className="category-trophies">
+                          {tierTrophies.map(trophy => (
+                            <div key={trophy._id} className="mini-trophy">
+                              <span className="mini-trophy-icon" style={{ color: getTrophyTier(tier) }}>
+                                {trophy.trophyIcon}
+                              </span>
+                              <span className="mini-trophy-name">{trophy.trophyName}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Achievements */}
+            {trophies.length > 0 && (
+              <div className="recent-achievements">
+                <h3>🎉 Recent Achievements</h3>
+                <div className="achievements-list">
+                  {trophies
+                    .sort((a, b) => new Date(b.unlockedAt || b.createdAt) - new Date(a.unlockedAt || a.createdAt))
+                    .slice(0, 5)
+                    .map((trophy, index) => (
+                      <div key={trophy._id} className="achievement-item">
+                        <div className="achievement-icon" style={{ color: getTrophyTier(trophy.tier) }}>
+                          {trophy.trophyIcon}
+                        </div>
+                        <div className="achievement-content">
+                          <div className="achievement-title">{trophy.trophyName}</div>
+                          <div className="achievement-description">{trophy.trophyDescription}</div>
+                          <div className="achievement-date">
+                            {new Date(trophy.unlockedAt || trophy.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="achievement-tier" style={{ backgroundColor: getTrophyTier(trophy.tier) }}>
+                          {trophy.tier}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           /* Enhanced Statistics View */
           <div className="statistics-view">
@@ -611,34 +779,7 @@ const Focus = ({ user }) => {
               </button>
             </div>
 
-            {/* Trophy Gallery */}
-            <div className="trophy-gallery">
-              <h2>🏆 Your Trophies ({trophies.length})</h2>
-              <div className="trophy-grid">
-                {trophies.length > 0 ? (
-                  trophies.slice(0, 8).map(trophy => (
-                    <div key={trophy._id} className="trophy-card" style={{ borderColor: getTrophyTier(trophy.tier) }}>
-                      <div className="trophy-icon" style={{ color: getTrophyTier(trophy.tier) }}>
-                        {trophy.trophyIcon}
-                      </div>
-                      <div className="trophy-name">{trophy.trophyName}</div>
-                      <div className="trophy-description">{trophy.trophyDescription}</div>
-                      <div className="trophy-tier">{trophy.tier}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="no-trophies">
-                    <span className="trophy-placeholder">🏆</span>
-                    <p>No trophies yet! Complete focus sessions to earn your first trophy.</p>
-                  </div>
-                )}
-              </div>
-              {trophies.length > 8 && (
-                <button className="view-all-trophies" onClick={() => setShowTrophyModal(true)}>
-                  View All {trophies.length} Trophies
-                </button>
-              )}
-            </div>
+
 
             {/* Enhanced Statistics */}
             <div className="stats-display">
@@ -660,42 +801,32 @@ const Focus = ({ user }) => {
                     <p className="stat-label">Focus sessions</p>
                   </div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-icon">📊</div>
-                  <div className="stat-content">
-                    <h3>Average Session</h3>
-                    <p className="stat-value">{calculatedStats.averageSession}</p>
-                    <p className="stat-label">Per session</p>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon">🏆</div>
-                  <div className="stat-content">
-                    <h3>Longest Session</h3>
-                    <p className="stat-value">{calculatedStats.longestSession}</p>
-                    <p className="stat-label">Personal best</p>
-                  </div>
-                </div>
               </div>
 
-              {/* Task Type Breakdown */}
-              <div className="task-breakdown">
+              {/* Focus Time by Task Type Card */}
+              <div className="task-breakdown-card">
                 <h3>📈 Focus Time by Task Type</h3>
-                <div className="breakdown-grid">
-                  <div className="breakdown-item">
-                    <span className="breakdown-icon">📝</span>
-                    <span className="breakdown-label">Todos</span>
-                    <span className="breakdown-value">{calculatedStats.todoTime}</span>
+                <div className="task-type-grid">
+                  <div className="task-type-item">
+                    <div className="task-type-icon">📝</div>
+                    <div className="task-type-info">
+                      <div className="task-type-label">Todos</div>
+                      <div className="task-type-value">{calculatedStats.todoTime}</div>
+                    </div>
                   </div>
-                  <div className="breakdown-item">
-                    <span className="breakdown-icon">🎯</span>
-                    <span className="breakdown-label">Goals</span>
-                    <span className="breakdown-value">{calculatedStats.goalTime}</span>
+                  <div className="task-type-item">
+                    <div className="task-type-icon">🎯</div>
+                    <div className="task-type-info">
+                      <div className="task-type-label">Goals</div>
+                      <div className="task-type-value">{calculatedStats.goalTime}</div>
+                    </div>
                   </div>
-                  <div className="breakdown-item">
-                    <span className="breakdown-icon">🔥</span>
-                    <span className="breakdown-label">Habits</span>
-                    <span className="breakdown-value">{calculatedStats.habitTime}</span>
+                  <div className="task-type-item">
+                    <div className="task-type-icon">🔥</div>
+                    <div className="task-type-info">
+                      <div className="task-type-label">Habits</div>
+                      <div className="task-type-value">{calculatedStats.habitTime}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -727,7 +858,16 @@ const Focus = ({ user }) => {
 
               {/* Timeline Card */}
               <div className="timeline-card">
-                <h3>📅 Today's Focus Timeline</h3>
+                <div className="timeline-header">
+                  <h3>📅 Today's Focus Timeline</h3>
+                  <button
+                    className="btn btn-secondary timeline-add-btn"
+                    onClick={() => setShowCustomEntry(true)}
+                  >
+                    <span className="btn-icon">➕</span>
+                    Add Custom Time
+                  </button>
+                </div>
                 {todaysTimeline.length > 0 ? (
                   <div className="timeline-list">
                     {todaysTimeline.map((session, index) => (

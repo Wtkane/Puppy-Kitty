@@ -183,24 +183,25 @@ const TodoList = ({ user }) => {
         <h1 className="todos-title">
           Todo List
         </h1>
-        <button
-          className="btn btn-primary add-todo-btn"
-          onClick={() => setShowForm(true)}
-        >
-          <span>➕</span>
-          Add Todo
-        </button>
-      </div>
+        <div className="todos-controls">
+          <div className="todos-stats">
+            <div className="stat-item">
+              <span className="stat-number">{stats.pending}</span>
+              <span className="stat-label">To-do</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">{stats.completed}</span>
+              <span className="stat-label">Completed</span>
+            </div>
+          </div>
 
-      {/* Stats */}
-      <div className="todos-stats">
-        <div className="stat-item">
-          <span className="stat-number">{stats.pending}</span>
-          <span className="stat-label">To-do</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.completed}</span>
-          <span className="stat-label">Completed</span>
+          <button
+            className="btn btn-primary add-todo-btn"
+            onClick={() => setShowForm(true)}
+          >
+            <span>➕</span>
+            Add Todo
+          </button>
         </div>
       </div>
 
@@ -229,9 +230,9 @@ const TodoList = ({ user }) => {
             key={priority.value}
             className={`filter-btn priority ${filter === priority.value ? 'active' : ''}`}
             onClick={() => setFilter(priority.value)}
-            style={{ backgroundColor: priority.color }}
+            data-priority={priority.value}
           >
-            {priority.emoji} {priority.label}
+            {priority.label}
           </button>
         ))}
         <button
@@ -418,11 +419,8 @@ const TodoList = ({ user }) => {
                               {todo.title}
                             </h4>
                             <div className="todo-badges">
-                              <span
-                                className="todo-priority"
-                                style={{ backgroundColor: priorityInfo.color }}
-                              >
-                                {priorityInfo.emoji} {priorityInfo.label}
+                              <span className="todo-priority">
+                                {priorityInfo.label}
                               </span>
                               <span className="todo-category">
                                 {categoryInfo.emoji} {categoryInfo.label}

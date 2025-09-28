@@ -23,6 +23,7 @@ const Calendar = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [groupedEvents, setGroupedEvents] = useState([]);
   const [eventFilter, setEventFilter] = useState('today'); // 'today', 'week', 'month', 'all'
+  const [openDropdown, setOpenDropdown] = useState(null); // Track which dropdown is open
 
   const colors = [
     { value: '#ff6b6b', label: 'Red', emoji: '❤️' },
@@ -39,6 +40,31 @@ const Calendar = ({ user }) => {
     fetchGroupedEvents();
     fetchGoogleEvents();
   }, [user]); // Add user as dependency to refresh when group changes
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdowns = document.querySelectorAll('.dropdown-menu');
+      dropdowns.forEach(dropdown => {
+        if (!dropdown.contains(event.target) && !event.target.closest('.btn-dropdown')) {
+          dropdown.style.display = 'none';
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Helper function to close all dropdowns
+  const closeAllDropdowns = () => {
+    const dropdowns = document.querySelectorAll('.dropdown-menu');
+    dropdowns.forEach(dropdown => {
+      dropdown.style.display = 'none';
+    });
+  };
 
   const fetchGroupedEvents = async () => {
     try {
@@ -407,61 +433,145 @@ const Calendar = ({ user }) => {
         </h1>
         <div className="calendar-controls">
           <div className="action-buttons">
-            <div className="view-controls">
-              <div className="view-toggle">
+            {/* View Mode Dropdown */}
+            <div className="dropdown-container">
+              <div className="dropdown">
                 <button
-                  className={`btn btn-small ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setViewMode('list')}
-                  title="List View"
+                  className="btn btn-dropdown btn-small"
+                  onClick={() => {
+                    const dropdown = document.querySelector('.view-dropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                  }}
                 >
-                  List
+                  {viewMode === 'list' ? 'List' : 'Calendar'}
+                  <span className="dropdown-arrow">▼</span>
                 </button>
-                <button
-                  className={`btn btn-small ${viewMode === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setViewMode('calendar')}
-                  title="Calendar View"
-                >
-                  Calendar
-                </button>
+                <div className="dropdown-menu view-dropdown">
+                  <button
+                    className={`dropdown-item ${viewMode === 'list' ? 'active' : ''}`}
+                    onClick={() => {
+                      setViewMode('list');
+                      document.querySelector('.view-dropdown').style.display = 'none';
+                    }}
+                  >
+                    List View
+                  </button>
+                  <button
+                    className={`dropdown-item ${viewMode === 'calendar' ? 'active' : ''}`}
+                    onClick={() => {
+                      setViewMode('calendar');
+                      document.querySelector('.view-dropdown').style.display = 'none';
+                    }}
+                  >
+                    Calendar View
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Filter Dropdown for List View */}
             {viewMode === 'list' && (
-              <div className="filter-dropdown">
-                <select
-                  className="form-input filter-select"
-                  value={eventFilter}
-                  onChange={(e) => setEventFilter(e.target.value)}
-                >
-                  <option value="today">Today</option>
-                  <option value="week">This Week</option>
-                  <option value="month">This Month</option>
-                  <option value="all">All Events</option>
-                </select>
+              <div className="dropdown-container">
+                <div className="dropdown">
+                  <button
+                    className="btn btn-dropdown btn-small"
+                    onClick={() => {
+                      const dropdown = document.querySelector('.filter-dropdown-menu');
+                      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                    }}
+                  >
+                    {eventFilter === 'today' && 'Today'}
+                    {eventFilter === 'week' && 'This Week'}
+                    {eventFilter === 'month' && 'This Month'}
+                    {eventFilter === 'all' && 'All Events'}
+                    <span className="dropdown-arrow">▼</span>
+                  </button>
+                  <div className="dropdown-menu filter-dropdown-menu">
+                    <button
+                      className={`dropdown-item ${eventFilter === 'today' ? 'active' : ''}`}
+                      onClick={() => {
+                        setEventFilter('today');
+                        document.querySelector('.filter-dropdown-menu').style.display = 'none';
+                      }}
+                    >
+                      Today
+                    </button>
+                    <button
+                      className={`dropdown-item ${eventFilter === 'week' ? 'active' : ''}`}
+                      onClick={() => {
+                        setEventFilter('week');
+                        document.querySelector('.filter-dropdown-menu').style.display = 'none';
+                      }}
+                    >
+                      This Week
+                    </button>
+                    <button
+                      className={`dropdown-item ${eventFilter === 'month' ? 'active' : ''}`}
+                      onClick={() => {
+                        setEventFilter('month');
+                        document.querySelector('.filter-dropdown-menu').style.display = 'none';
+                      }}
+                    >
+                      This Month
+                    </button>
+                    <button
+                      className={`dropdown-item ${eventFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => {
+                        setEventFilter('all');
+                        document.querySelector('.filter-dropdown-menu').style.display = 'none';
+                      }}
+                    >
+                      All Events
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
-            <div className="primary-actions">
-              <button
-                className="btn btn-secondary btn-small"
-                onClick={syncGoogleEvents}
-                title="Sync Google Calendar events"
-              >
-                Sync
-              </button>
-              <button
-                className="btn btn-primary btn-small"
-                onClick={() => setShowForm(true)}
-              >
-                Add Event
-              </button>
-            </div>
-            <div className="destructive-actions">
-              <button
-                className="btn btn-danger btn-small"
-                onClick={clearAllEvents}
-                title="Clear all events"
-              >
-                Clear All
-              </button>
+
+            {/* Actions Dropdown */}
+            <div className="dropdown-container">
+              <div className="dropdown">
+                <button
+                  className="btn btn-dropdown btn-primary btn-small"
+                  onClick={() => {
+                    const dropdown = document.querySelector('.actions-dropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                  }}
+                >
+                  Actions
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                <div className="dropdown-menu actions-dropdown">
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      syncGoogleEvents();
+                      document.querySelector('.actions-dropdown').style.display = 'none';
+                    }}
+                  >
+                    Sync Google
+                  </button>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setShowForm(true);
+                      document.querySelector('.actions-dropdown').style.display = 'none';
+                    }}
+                  >
+                    Add Event
+                  </button>
+                  <div className="dropdown-divider"></div>
+                  <button
+                    className="dropdown-item danger"
+                    onClick={() => {
+                      clearAllEvents();
+                      document.querySelector('.actions-dropdown').style.display = 'none';
+                    }}
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -336,9 +336,6 @@ const Goals = ({ user }) => {
             goals.map(goal => (
               <div key={goal._id} className="goal-card">
                 <div className="goal-card-header">
-                  <div className="goal-main-icon">
-                    {getCategoryEmoji(goal.category)}
-                  </div>
                   <div className="goal-header-details">
                     <div className="goal-priority-badge" style={{ backgroundColor: getPriorityColor(goal.priority) }}>
                       {goal.priority}
@@ -385,7 +382,7 @@ const Goals = ({ user }) => {
                           className="progress-fill-modern"
                           style={{
                             width: `${getProgressPercentage(goal)}%`,
-                            backgroundColor: getPriorityColor(goal.priority)
+                            backgroundColor: '#4ecdc4'
                           }}
                         />
                       </div>

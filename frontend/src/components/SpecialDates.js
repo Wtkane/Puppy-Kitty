@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Calendar.css'; // Reuse Calendar.css for consistent styling
+import './SpecialDates.css';
 
 const SpecialDates = ({ user }) => {
   const [specialDates, setSpecialDates] = useState([]);
@@ -104,21 +104,7 @@ const SpecialDates = ({ user }) => {
     }
   };
 
-  const clearAllSpecialDates = async () => {
-    if (window.confirm('⚠️ Are you sure you want to delete ALL special dates? This cannot be undone!')) {
-      try {
-        const response = await axios.delete('/api/special-dates');
-        const { deletedCount } = response.data;
 
-        fetchSpecialDates();
-
-        alert(`✅ Successfully cleared ${deletedCount} special dates!`);
-      } catch (error) {
-        console.error('Error clearing special dates:', error);
-        alert('Failed to clear special dates. Please try again.');
-      }
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -221,42 +207,54 @@ const SpecialDates = ({ user }) => {
   }
 
   return (
-    <div className="calendar-container">
-      <div className="calendar-header">
-        <h1 className="calendar-title">
-          Dates
+    <div className="special-dates-container">
+      <div className="special-dates-header">
+        <h1 className="special-dates-title">
+          Special Dates
         </h1>
-        <div className="calendar-actions">
-          <div className="view-toggle">
-            <button
-              className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setViewMode('list')}
-            >
-              <span>📋</span>
-              All Dates
-            </button>
-            <button
-              className={`btn ${viewMode === 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setViewMode('upcoming')}
-            >
-              <span>⏰</span>
-              Upcoming
-            </button>
+        <div className="special-dates-controls">
+          {/* View Mode Dropdown */}
+          <div className="dropdown-container">
+            <div className="dropdown">
+              <button
+                className="btn btn-dropdown btn-small"
+                onClick={() => {
+                  const dropdown = document.querySelector('.view-dropdown');
+                  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }}
+              >
+                {viewMode === 'list' ? '📋 All Dates' : '⏰ Upcoming'}
+                <span className="dropdown-arrow">▼</span>
+              </button>
+              <div className="dropdown-menu view-dropdown">
+                <button
+                  className={`dropdown-item ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => {
+                    setViewMode('list');
+                    document.querySelector('.view-dropdown').style.display = 'none';
+                  }}
+                >
+                  📋 All Dates
+                </button>
+                <button
+                  className={`dropdown-item ${viewMode === 'upcoming' ? 'active' : ''}`}
+                  onClick={() => {
+                    setViewMode('upcoming');
+                    document.querySelector('.view-dropdown').style.display = 'none';
+                  }}
+                >
+                  ⏰ Upcoming
+                </button>
+              </div>
+            </div>
           </div>
+
           <button
-            className="btn btn-danger"
-            onClick={clearAllSpecialDates}
-            title="Clear all special dates"
-          >
-            <span>🗑️</span>
-            Clear All
-          </button>
-          <button
-            className="btn btn-primary"
+            className="btn btn-primary btn-small"
             onClick={() => setShowForm(true)}
           >
             <span>➕</span>
-            Add Special Date
+            Add Date
           </button>
         </div>
       </div>
@@ -424,36 +422,43 @@ const SpecialDates = ({ user }) => {
                 {todaysDates.map(date => (
                   <div
                     key={date._id}
-                    className="event-card"
-                    style={{ borderLeftColor: date.color }}
+                    className="special-date-card today"
+                    style={{ borderColor: date.color }}
                   >
-                    <div className="event-header">
-                      <h3 className="event-title">{date.title}</h3>
-                      <div className="event-actions">
-                        <button
-                          className="btn-icon"
-                          onClick={() => handleEdit(date)}
-                          title="Edit special date"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="btn-icon"
-                          onClick={() => handleDelete(date._id)}
-                          title="Delete special date"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                    <div className="special-date-badge">
+                      {types.find(t => t.value === date.type)?.emoji}
                     </div>
-
-                    <div className="event-details">
-                      <p className="event-type">{types.find(t => t.value === date.type)?.emoji} {types.find(t => t.value === date.type)?.label}</p>
+                    <div className="special-date-content">
+                      <div className="special-date-header">
+                        <h3 className="special-date-title">{date.title}</h3>
+                        <div className="special-date-actions">
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleEdit(date)}
+                            title="Edit special date"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn-icon"
+                            onClick={() => handleDelete(date._id)}
+                            title="Delete special date"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                      <div className="special-date-type">
+                        {types.find(t => t.value === date.type)?.label}
+                      </div>
                       {date.description && (
-                        <p className="event-description">{date.description}</p>
+                        <p className="special-date-description">{date.description}</p>
                       )}
                       {date.isRecurring && (
-                        <p className="event-recurring">🔄 Recurring {date.recurringType}</p>
+                        <div className="special-date-recurring">
+                          <span>🔄</span>
+                          <span>Recurring {date.recurringType}</span>
+                        </div>
                       )}
                     </div>
                   </div>

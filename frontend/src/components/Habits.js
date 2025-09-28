@@ -82,6 +82,17 @@ const Habits = ({ user }) => {
   };
 
   const deleteHabit = async (habitId) => {
+    // Find the habit name for the confirmation message
+    const habitToDelete = habits.find(habit => habit._id === habitId);
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the habit "${habitToDelete?.name}"?\n\nThis action cannot be undone and will also delete all associated check-in data.`
+    );
+
+    if (!confirmed) {
+      return; // User cancelled the deletion
+    }
+
     try {
       await axios.delete(`/api/habits/${habitId}`);
       setHabits(habits.filter(habit => habit._id !== habitId));
@@ -254,9 +265,13 @@ const Habits = ({ user }) => {
                   <div className="habit-frequency">
                     <span className="frequency-name">{habit.frequency}</span>
                   </div>
-                  <div className="habit-status">
-                    {habit.status === 'active' ? '🟢' : habit.status === 'paused' ? '🟡' : '🔴'}
-                  </div>
+                  <button
+                    className="delete-btn-horizontal"
+                    onClick={() => deleteHabit(habit._id)}
+                    title="Delete habit"
+                  >
+                    Delete
+                  </button>
                 </div>
 
                 <div className="habit-content">
@@ -295,12 +310,6 @@ const Habits = ({ user }) => {
                     onClick={() => checkInHabit(habit._id)}
                   >
                     {isCheckedInToday(habit) ? '↩️ Undo Check-in' : '🔥 Check In'}
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => deleteHabit(habit._id)}
-                  >
-                    🗑️
                   </button>
                 </div>
               </div>
