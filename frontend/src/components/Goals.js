@@ -21,7 +21,7 @@ const Goals = ({ user }) => {
 
   useEffect(() => {
     fetchGoals();
-  }, []);
+  }, [user]); // Add user as dependency to refresh when group changes
 
   const fetchGoals = async () => {
     try {

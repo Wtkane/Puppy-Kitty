@@ -22,10 +22,38 @@ const auth = async (req, res, next) => {
   }
 };
 
-// Get all events
+// Get all events (filtered by current group context)
 router.get('/', auth, async (req, res) => {
   try {
-    const events = await Calendar.find().populate('createdBy', 'name email');
+    const user = await User.findById(req.userId).populate('joinedGroups');
+    const { members } = req.query; // Optional member filter for group views
+    
+    let query = {};
+    
+    if (user.currentGroup === 'personal') {
+      // Personal view - only user's own events
+      query.createdBy = req.userId;
+    } else {
+      // Group view - events from all group members
+      const Group = require('../models/Group');
+      const group = await Group.findById(user.currentGroup);
+      
+      if (!group || !group.members.some(memberId => memberId.toString() === req.userId)) {
+        return res.status(403).json({ message: 'Access denied to group' });
+      }
+      
+      let memberIds = group.members;
+      
+      // Apply member filter if provided
+      if (members) {
+        const selectedMembers = members.split(',');
+        memberIds = memberIds.filter(id => selectedMembers.includes(id.toString()));
+      }
+      
+      query.createdBy = { $in: memberIds };
+    }
+    
+    const events = await Calendar.find(query).populate('createdBy', 'name email');
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

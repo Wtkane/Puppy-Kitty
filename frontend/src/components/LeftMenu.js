@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './LeftMenu.css';
+import GroupManagement from './GroupManagement';
 
 const LeftMenu = ({ isOpen, onClose, user }) => {
+  const [showGroupManagement, setShowGroupManagement] = useState(false);
   return (
     <>
       {/* Overlay */}
@@ -62,6 +64,24 @@ const LeftMenu = ({ isOpen, onClose, user }) => {
             </div>
           </div>
 
+          {/* Groups Section */}
+          {user && (
+            <div className="menu-section">
+              <h3 className="menu-section-title">
+                👥 Groups
+              </h3>
+              <div className="menu-section-content">
+                <button 
+                  className="menu-item menu-button" 
+                  onClick={() => setShowGroupManagement(true)}
+                >
+                  <span className="menu-icon">👥</span>
+                  <span>Manage Groups</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* User Section */}
           {user && (
             <div className="menu-section">
@@ -87,6 +107,13 @@ const LeftMenu = ({ isOpen, onClose, user }) => {
           )}
         </div>
       </div>
+
+      {/* Group Management Modal */}
+      {showGroupManagement && (
+        <GroupManagement 
+          onClose={() => setShowGroupManagement(false)} 
+        />
+      )}
     </>
   );
 };

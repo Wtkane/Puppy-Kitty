@@ -41,6 +41,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '#4ecdc4'
   },
+  currentGroup: {
+    type: String,
+    default: 'personal' // 'personal' or ObjectId of group
+  },
+  joinedGroups: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Group'
+  }],
   createdAt: {
     type: Date,
     default: Date.now

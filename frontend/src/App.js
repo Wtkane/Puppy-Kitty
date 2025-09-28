@@ -113,6 +113,16 @@ function App() {
     setIsMenuOpen(false);
   };
 
+  const handleGroupChange = async (groupId) => {
+    // Refresh user data to get updated currentGroup
+    try {
+      const response = await axios.get('/api/auth/me');
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -134,6 +144,7 @@ function App() {
               onLogout={handleLogout}
               onMenuToggle={toggleMenu}
               isMenuOpen={isMenuOpen}
+              onGroupChange={handleGroupChange}
             />
             <LeftMenu
               isOpen={isMenuOpen}

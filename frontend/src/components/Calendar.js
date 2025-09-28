@@ -38,12 +38,32 @@ const Calendar = ({ user }) => {
     fetchEvents();
     fetchGroupedEvents();
     fetchGoogleEvents();
-  }, []);
+  }, [user]); // Add user as dependency to refresh when group changes
 
   const fetchGroupedEvents = async () => {
     try {
-      const response = await axios.get('/api/calendar/grouped-by-user');
-      setGroupedEvents(response.data);
+      const response = await axios.get('/api/calendar');
+      const events = response.data;
+      
+      // Group events by user on the frontend
+      const userGroups = {};
+      events.forEach(event => {
+        const userId = event.createdBy._id.toString();
+        if (!userGroups[userId]) {
+          userGroups[userId] = {
+            user: event.createdBy,
+            events: []
+          };
+        }
+        userGroups[userId].events.push(event);
+      });
+
+      // Convert to array and sort by user name
+      const groupedEvents = Object.values(userGroups).sort((a, b) =>
+        a.user.name.localeCompare(b.user.name)
+      );
+
+      setGroupedEvents(groupedEvents);
     } catch (error) {
       console.error('Error fetching grouped events:', error);
     }

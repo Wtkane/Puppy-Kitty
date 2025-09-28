@@ -31,6 +31,7 @@ app.use('/api/focus', require('./routes/focus'));
 app.use('/api/goals', require('./routes/goals'));
 app.use('/api/habits', require('./routes/habits'));
 app.use('/api/special-dates', require('./routes/specialDates'));
+app.use('/api/groups', require('./routes/groups'));
 
 // Health check
 app.get('/api/health', (req, res) => {

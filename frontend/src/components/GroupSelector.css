@@ -1,0 +1,142 @@
+.group-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.group-selector-dropdown {
+  position: relative;
+}
+
+.group-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.group-selector-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.group-selector-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.group-icon {
+  font-size: 16px;
+}
+
+.group-name {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.group-selector-dropdown:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.group-selector-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.group-selector-dropdown:hover .group-selector-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.group-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #333;
+  font-size: 14px;
+}
+
+.group-option:hover {
+  background-color: #f5f5f5;
+}
+
+.group-option.active {
+  background-color: var(--primary-color, #ff6b6b);
+  color: white;
+}
+
+.group-option.active:hover {
+  background-color: var(--primary-color, #ff6b6b);
+  opacity: 0.9;
+}
+
+.group-option:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.group-option:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.group-option .group-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .group-selector-button {
+    min-width: 100px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .group-name {
+    max-width: 80px;
+  }
+  
+  .group-selector-menu {
+    min-width: 180px;
+  }
+  
+  .group-option {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}

@@ -16,7 +16,7 @@ const Habits = ({ user }) => {
 
   useEffect(() => {
     fetchHabits();
-  }, []);
+  }, [user]); // Add user as dependency to refresh when group changes
 
   const fetchHabits = async () => {
     try {

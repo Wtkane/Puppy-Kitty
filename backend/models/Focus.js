@@ -32,6 +32,19 @@ const focusSchema = new mongoose.Schema({
   endTime: {
     type: Date,
     default: Date.now
+  },
+  isCustomEntry: {
+    type: Boolean,
+    default: false
+  },
+  notes: {
+    type: String,
+    trim: true,
+    maxlength: 500
+  },
+  sessionDate: {
+    type: Date,
+    default: Date.now // For custom entries, this can be different from createdAt
   }
 }, {
   timestamps: true

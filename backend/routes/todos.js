@@ -5,10 +5,38 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all todos
+// Get all todos (filtered by current group context)
 router.get('/', auth, async (req, res) => {
   try {
-    const todos = await Todo.find().populate('createdBy', 'name email').populate('assignedTo', 'name email');
+    const user = await User.findById(req.user.id).populate('joinedGroups');
+    const { members } = req.query; // Optional member filter for group views
+    
+    let query = {};
+    
+    if (user.currentGroup === 'personal') {
+      // Personal view - only user's own todos
+      query.createdBy = req.user.id;
+    } else {
+      // Group view - todos from all group members
+      const Group = require('../models/Group');
+      const group = await Group.findById(user.currentGroup);
+      
+      if (!group || !group.members.some(memberId => memberId.toString() === req.user.id)) {
+        return res.status(403).json({ message: 'Access denied to group' });
+      }
+      
+      let memberIds = group.members;
+      
+      // Apply member filter if provided
+      if (members) {
+        const selectedMembers = members.split(',');
+        memberIds = memberIds.filter(id => selectedMembers.includes(id.toString()));
+      }
+      
+      query.createdBy = { $in: memberIds };
+    }
+    
+    const todos = await Todo.find(query).populate('createdBy', 'name email').populate('assignedTo', 'name email');
     res.json(todos);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -32,12 +32,32 @@ const TodoList = ({ user }) => {
 
   useEffect(() => {
     fetchTodos();
-  }, []);
+  }, [user]); // Add user as dependency to refresh when group changes
 
   const fetchTodos = async () => {
     try {
-      const response = await axios.get('/api/todos/my-todos');
-      setTodos([{ user, todos: response.data }]);
+      const response = await axios.get('/api/todos');
+      const todos = response.data;
+      
+      // Group todos by user on the frontend
+      const userGroups = {};
+      todos.forEach(todo => {
+        const userId = todo.createdBy._id.toString();
+        if (!userGroups[userId]) {
+          userGroups[userId] = {
+            user: todo.createdBy,
+            todos: []
+          };
+        }
+        userGroups[userId].todos.push(todo);
+      });
+
+      // Convert to array and sort by user name
+      const groupedTodos = Object.values(userGroups).sort((a, b) =>
+        a.user.name.localeCompare(b.user.name)
+      );
+
+      setTodos(groupedTodos);
     } catch (error) {
       console.error('Error fetching todos:', error);
     } finally {

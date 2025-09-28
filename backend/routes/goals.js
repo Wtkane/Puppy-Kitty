@@ -3,10 +3,39 @@ const router = express.Router();
 const Goal = require('../models/Goal');
 const auth = require('../middleware/auth');
 
-// Get all goals for the authenticated user
+// Get all goals (filtered by current group context)
 router.get('/', auth, async (req, res) => {
   try {
-    const goals = await Goal.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id).populate('joinedGroups');
+    const { members } = req.query; // Optional member filter for group views
+    
+    let query = {};
+    
+    if (user.currentGroup === 'personal') {
+      // Personal view - only user's own goals
+      query.user = req.user.id;
+    } else {
+      // Group view - goals from all group members
+      const Group = require('../models/Group');
+      const group = await Group.findById(user.currentGroup);
+      
+      if (!group || !group.members.some(memberId => memberId.toString() === req.user.id)) {
+        return res.status(403).json({ message: 'Access denied to group' });
+      }
+      
+      let memberIds = group.members;
+      
+      // Apply member filter if provided
+      if (members) {
+        const selectedMembers = members.split(',');
+        memberIds = memberIds.filter(id => selectedMembers.includes(id.toString()));
+      }
+      
+      query.user = { $in: memberIds };
+    }
+    
+    const goals = await Goal.find(query).populate('user', 'name email').sort({ createdAt: -1 });
     res.json(goals);
   } catch (error) {
     console.error(error.message);

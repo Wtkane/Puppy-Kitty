@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
+import GroupSelector from './GroupSelector';
 
-const Navbar = ({ user, onLogout, onMenuToggle, isMenuOpen }) => {
+const Navbar = ({ user, onLogout, onMenuToggle, isMenuOpen, onGroupChange }) => {
   const location = useLocation();
 
   const isActive = (path) => {
@@ -36,6 +37,7 @@ const Navbar = ({ user, onLogout, onMenuToggle, isMenuOpen }) => {
       </div>
 
       <div className="navbar-right">
+        <GroupSelector user={user} onGroupChange={onGroupChange} />
         <ul className="navbar-nav">
           <li>
             <Link to="/dashboard" className={isActive('/dashboard')}>
