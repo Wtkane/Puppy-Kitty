@@ -200,13 +200,20 @@ const Focus = ({ user }) => {
     console.log('Tasks:', tasks);
     switch (selectedCategory) {
       case 'todo':
-        console.log('Returning todos:', tasks.todos);
-        return tasks.todos.map(todo => ({ ...todo, type: 'todo' }));
+        console.log('Returning incomplete todos:', tasks.todos.filter(todo => !todo.completed));
+        // Only show incomplete todos
+        return tasks.todos
+          .filter(todo => !todo.completed)
+          .map(todo => ({ ...todo, type: 'todo' }));
       case 'goal':
-        console.log('Returning goals:', tasks.goals);
-        return tasks.goals.map(goal => ({ ...goal, type: 'goal' }));
+        console.log('Returning active goals:', tasks.goals.filter(goal => !goal.completed));
+        // Only show incomplete goals
+        return tasks.goals
+          .filter(goal => !goal.completed)
+          .map(goal => ({ ...goal, type: 'goal' }));
       case 'habit':
-        console.log('Returning habits:', tasks.habits);
+        console.log('Returning active habits:', tasks.habits);
+        // Show all habits (habits are ongoing by nature)
         return tasks.habits.map(habit => ({ ...habit, type: 'habit' }));
       default:
         return [];
@@ -404,7 +411,12 @@ const Focus = ({ user }) => {
               ))
             ) : (
               <div className="no-tasks">
-                <p>No {selectedCategory}s found. Create some {selectedCategory}s first!</p>
+                <p>
+                  {selectedCategory === 'todo' && 'No incomplete todos found. Complete some tasks or create new ones!'}
+                  {selectedCategory === 'goal' && 'No active goals found. Create some goals to focus on!'}
+                  {selectedCategory === 'habit' && 'No habits found. Create some habits to focus on!'}
+                </p>
+                <small>💡 Only incomplete tasks are available for focus sessions</small>
               </div>
             )}
           </div>

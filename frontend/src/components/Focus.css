@@ -878,6 +878,30 @@
   text-align: center;
 }
 
+/* No Tasks Message */
+.no-tasks {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 20px;
+  border: 2px dashed #dee2e6;
+  color: #6c757d;
+}
+
+.no-tasks p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.no-tasks small {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-style: italic;
+  opacity: 0.8;
+}
+
 .sessions-list {
   display: grid;
   gap: 1rem;
