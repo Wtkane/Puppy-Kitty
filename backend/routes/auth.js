@@ -9,7 +9,7 @@ const router = express.Router();
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  'http://localhost:3000'
+  process.env.CLIENT_ORIGIN || 'http://localhost:3000'
 );
 
 const SCOPES = [
@@ -248,7 +248,8 @@ router.get('/google/callback', async (req, res) => {
     );
 
     // Redirect to frontend with token
-    res.redirect(`http://localhost:3000/auth/callback?token=${jwtToken}`);
+    const frontendUrl = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${jwtToken}`);
   } catch (error) {
     console.error('Google OAuth error:', error);
     res.status(500).json({ message: 'Authentication failed', error: error.message });
@@ -272,11 +273,12 @@ router.post('/google/exchange', async (req, res) => {
     // 2) IMPORTANT: In GIS **popup** mode, redirect_uri must be the **origin** (not a path)
     // Docs: for popup mode, token exchange uses the origin that called initCodeClient (e.g., http://localhost:3000).
     // https://developers.google.com/identity/oauth2/web/guides/use-code-model
+    const frontendUrl = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
     const params = new URLSearchParams({
       code,
       client_id: CID,
       client_secret: CSECRET,
-      redirect_uri: 'http://localhost:3000',
+      redirect_uri: frontendUrl,
       grant_type: 'authorization_code',
     });
 
