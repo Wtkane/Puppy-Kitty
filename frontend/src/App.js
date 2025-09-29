@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import axios from 'axios';
+import api from './utils/api';
 import './App.css';
 
 // Components
@@ -26,10 +26,8 @@ const OAuthCallback = ({ onLogin }) => {
 
     if (token) {
       localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
       // Get user info
-      axios.get('/api/auth/me')
+      api.get('/api/auth/me')
         .then(response => {
           onLogin(response.data, token);
           window.location.href = '/dashboard';
@@ -61,7 +59,6 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       checkAuth();
     } else {
       setLoading(false);
@@ -70,7 +67,7 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await api.get('/api/auth/me');
       setUser(response.data);
       // Set CSS custom properties for user colors
       if (response.data.primaryColor && response.data.secondaryColor) {
@@ -79,7 +76,6 @@ function App() {
       }
     } catch (error) {
       localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
     } finally {
       setLoading(false);
     }
@@ -87,7 +83,6 @@ function App() {
 
   const handleLogin = (userData, token) => {
     localStorage.setItem('token', token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(userData);
     // Set CSS custom properties for user colors
     if (userData.primaryColor && userData.secondaryColor) {
@@ -98,7 +93,6 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
     setIsMenuOpen(false);
     // Reset CSS custom properties to defaults
@@ -117,7 +111,7 @@ function App() {
   const handleGroupChange = async (groupId) => {
     // Refresh user data to get updated currentGroup
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await api.get('/api/auth/me');
       setUser(response.data);
     } catch (error) {
       console.error('Error refreshing user data:', error);

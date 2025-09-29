@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import './Auth.css';
 
 const Login = ({ onLogin }) => {
@@ -24,7 +24,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/login', formData);
+      const response = await api.post('/api/auth/login', formData);
       onLogin(response.data.user, response.data.token);
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
@@ -55,7 +55,7 @@ const Login = ({ onLogin }) => {
 
       try {
         // Send code to backend to exchange for tokens
-        const result = await axios.post('/api/auth/google/exchange', {
+        const result = await api.post('/api/auth/google/exchange', {
           code: response.code
         });
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import './Dashboard.css';
 
 const Dashboard = ({ user }) => {
@@ -19,8 +19,8 @@ const Dashboard = ({ user }) => {
   const fetchDashboardData = async () => {
     try {
       const [eventsRes, todosRes] = await Promise.all([
-        axios.get('/api/calendar'),
-        axios.get('/api/todos/my-todos')
+        api.get('/api/calendar'),
+        api.get('/api/todos/my-todos')
       ]);
 
       const events = eventsRes.data;

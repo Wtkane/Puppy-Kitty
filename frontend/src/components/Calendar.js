@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './Calendar.css';
 
 const Calendar = ({ user }) => {
@@ -43,7 +43,7 @@ const Calendar = ({ user }) => {
 
   const fetchGroupedEvents = async () => {
     try {
-      const response = await axios.get('/api/calendar');
+      const response = await api.get('/api/calendar');
       const events = response.data;
       
       // Group events by user on the frontend
@@ -72,7 +72,7 @@ const Calendar = ({ user }) => {
 
   const fetchGoogleEvents = async () => {
     try {
-      const response = await axios.get('/api/calendar/google/events');
+      const response = await api.get('/api/calendar/google/events');
       setGoogleEvents(response.data);
     } catch (error) {
       console.error('Error fetching Google Calendar events:', error);
@@ -81,7 +81,7 @@ const Calendar = ({ user }) => {
 
   const syncGoogleEvents = async () => {
     try {
-      const response = await axios.post('/api/calendar/google/sync');
+      const response = await api.post('/api/calendar/google/sync');
       const { newEvents, updatedEvents, deletedEvents, errors } = response.data;
 
       fetchEvents(); // Refresh local events after sync
@@ -109,7 +109,7 @@ const Calendar = ({ user }) => {
       const startDateTime = `${eventData.date}T${eventData.startTime}:00`;
       const endDateTime = `${eventData.date}T${eventData.endTime}:00`;
 
-      await axios.post('/api/calendar/google/events', {
+      await api.post('/api/calendar/google/events', {
         summary: eventData.title,
         description: eventData.description,
         start: startDateTime,
@@ -126,7 +126,7 @@ const Calendar = ({ user }) => {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('/api/calendar');
+      const response = await api.get('/api/calendar');
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -140,9 +140,9 @@ const Calendar = ({ user }) => {
 
     try {
       if (editingEvent) {
-        await axios.put(`/api/calendar/${editingEvent._id}`, formData);
+        await api.put(`/api/calendar/${editingEvent._id}`, formData);
       } else {
-        await axios.post('/api/calendar', formData);
+        await api.post('/api/calendar', formData);
       }
 
       setShowForm(false);
@@ -171,7 +171,7 @@ const Calendar = ({ user }) => {
   const handleDelete = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        await axios.delete(`/api/calendar/${eventId}`);
+        await api.delete(`/api/calendar/${eventId}`);
         fetchEvents();
       } catch (error) {
         console.error('Error deleting event:', error);
@@ -182,7 +182,7 @@ const Calendar = ({ user }) => {
   const clearAllEvents = async () => {
     if (window.confirm('⚠️ Are you sure you want to delete ALL events? This cannot be undone!')) {
       try {
-        const response = await axios.delete('/api/calendar');
+        const response = await api.delete('/api/calendar');
         const { deletedCount } = response.data;
 
         fetchEvents(); // Refresh the events list

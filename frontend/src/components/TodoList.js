@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './TodoList.css';
 
 const TodoList = ({ user }) => {
@@ -36,7 +36,7 @@ const TodoList = ({ user }) => {
 
   const fetchTodos = async () => {
     try {
-      const response = await axios.get('/api/todos');
+      const response = await api.get('/api/todos');
       const todos = response.data;
       
       // Group todos by user on the frontend
@@ -70,9 +70,9 @@ const TodoList = ({ user }) => {
 
     try {
       if (editingTodo) {
-        await axios.put(`/api/todos/${editingTodo._id}`, formData);
+        await api.put(`/api/todos/${editingTodo._id}`, formData);
       } else {
-        await axios.post('/api/todos', formData);
+        await api.post('/api/todos', formData);
       }
 
       setShowForm(false);
@@ -86,7 +86,7 @@ const TodoList = ({ user }) => {
 
   const handleToggleComplete = async (todoId) => {
     try {
-      await axios.patch(`/api/todos/${todoId}/toggle`);
+      await api.patch(`/api/todos/${todoId}/toggle`);
       fetchTodos();
     } catch (error) {
       console.error('Error toggling todo:', error);
@@ -108,7 +108,7 @@ const TodoList = ({ user }) => {
   const handleDelete = async (todoId) => {
     if (window.confirm('Are you sure you want to delete this todo?')) {
       try {
-        await axios.delete(`/api/todos/${todoId}`);
+        await api.delete(`/api/todos/${todoId}`);
         fetchTodos();
       } catch (error) {
         console.error('Error deleting todo:', error);
