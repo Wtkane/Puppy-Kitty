@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './Focus.css';
 
 const Focus = ({ user }) => {
@@ -67,11 +67,11 @@ const Focus = ({ user }) => {
   const fetchData = async () => {
     try {
       const [todosRes, goalsRes, habitsRes, focusRes, trophiesRes] = await Promise.all([
-        axios.get('/api/todos'),
-        axios.get('/api/goals'),
-        axios.get('/api/habits'),
-        axios.get('/api/focus'),
-        axios.get('/api/focus/trophies')
+        api.get('/api/todos'),
+        api.get('/api/goals'),
+        api.get('/api/habits'),
+        api.get('/api/focus'),
+        api.get('/api/focus/trophies')
       ]);
       
       setTasks({
@@ -96,7 +96,7 @@ const Focus = ({ user }) => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`/api/focus/stats?period=${statsPeriod}`);
+      const response = await api.get(`/api/focus/stats?period=${statsPeriod}`);
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -106,7 +106,7 @@ const Focus = ({ user }) => {
   const fetchLeaderboard = async () => {
     try {
       if (user.currentGroup && user.currentGroup !== 'personal') {
-        const response = await axios.get(`/api/focus/leaderboard/${user.currentGroup}?period=${statsPeriod}`);
+        const response = await api.get(`/api/focus/leaderboard/${user.currentGroup}?period=${statsPeriod}`);
         setLeaderboard(response.data);
       }
     } catch (error) {
@@ -116,7 +116,7 @@ const Focus = ({ user }) => {
 
   const handleTimerComplete = async (focusedTime) => {
     try {
-      const response = await axios.post('/api/focus', {
+      const response = await api.post('/api/focus', {
         taskType,
         taskId: selectedTask._id,
         duration: focusedTime
@@ -140,7 +140,7 @@ const Focus = ({ user }) => {
   const handleCustomSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/focus/custom', {
+      const response = await api.post('/api/focus/custom', {
         ...customEntryForm,
         duration: customEntryForm.duration
       });
