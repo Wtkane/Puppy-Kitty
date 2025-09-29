@@ -8,7 +8,12 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5001'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:5001',
+    'https://puppy-kitty.onrender.com',
+    'https://puppy-kitty-frontend.onrender.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -33,9 +38,30 @@ app.use('/api/habits', require('./routes/habits'));
 app.use('/api/special-dates', require('./routes/specialDates'));
 app.use('/api/groups', require('./routes/groups'));
 
-// Health check
+// Health check endpoints
 app.get('/api/health', (req, res) => {
   res.json({ message: '🐱 Puppy & Kitty backend is running!' });
+});
+
+// Health check for deployment platforms (like Render)
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy',
+    message: '🐱 Puppy & Kitty backend is running!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root route handler
+app.get('/', (req, res) => {
+  res.json({ 
+    message: '🐶🐱 Welcome to Puppy & Kitty API!',
+    version: '1.0.0',
+    endpoints: {
+      health: '/healthz or /api/health',
+      api: '/api/*'
+    }
+  });
 });
 
 // Error handling middleware
