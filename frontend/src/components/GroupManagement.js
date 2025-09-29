@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './GroupManagement.css';
 
 const GroupManagement = ({ onClose }) => {
@@ -16,10 +16,7 @@ const GroupManagement = ({ onClose }) => {
 
   const fetchGroups = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/groups', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/groups');
       setGroups(response.data);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -41,10 +38,7 @@ const GroupManagement = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/groups', createForm, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post('/api/groups', createForm);
       
       setGroups([...groups, response.data]);
       setCreateForm({ name: '', description: '' });
@@ -67,10 +61,8 @@ const GroupManagement = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/groups/join', 
-        { inviteCode: joinCode.toUpperCase() },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.post('/api/groups/join', 
+        { inviteCode: joinCode.toUpperCase() }
       );
       
       setGroups([...groups, response.data]);
@@ -92,10 +84,7 @@ const GroupManagement = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/groups/${groupId}/leave`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/groups/${groupId}/leave`);
       
       setGroups(groups.filter(g => g._id !== groupId));
       showMessage('Left group successfully', 'success');

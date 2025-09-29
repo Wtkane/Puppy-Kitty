@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './GroupSelector.css';
 
 const GroupSelector = ({ user, onGroupChange }) => {
@@ -17,10 +17,7 @@ const GroupSelector = ({ user, onGroupChange }) => {
 
   const fetchGroups = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/groups', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/groups');
       setGroups(response.data);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -32,11 +29,7 @@ const GroupSelector = ({ user, onGroupChange }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put('/api/groups/switch', 
-        { groupId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/api/groups/switch', { groupId });
       
       setCurrentGroup(groupId);
       if (onGroupChange) {
