@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './Goals.css';
 
 const Goals = ({ user }) => {
@@ -25,7 +25,7 @@ const Goals = ({ user }) => {
 
   const fetchGoals = async () => {
     try {
-      const response = await axios.get('/api/goals');
+      const response = await api.get('/api/goals');
       setGoals(response.data);
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -46,7 +46,7 @@ const Goals = ({ user }) => {
     setMessage('');
 
     try {
-      const response = await axios.post('/api/goals', formData);
+      const response = await api.post('/api/goals', formData);
       setGoals([...goals, response.data]);
       setMessage('Goal created successfully! 🎯');
       setMessageType('success');
@@ -69,7 +69,7 @@ const Goals = ({ user }) => {
 
   const updateGoalProgress = async (goalId, newValue) => {
     try {
-      const response = await axios.put(`/api/goals/${goalId}`, { currentValue: newValue });
+      const response = await api.put(`/api/goals/${goalId}`, { currentValue: newValue });
       setGoals(goals.map(goal =>
         goal._id === goalId ? response.data : goal
       ));
@@ -80,7 +80,7 @@ const Goals = ({ user }) => {
 
   const deleteGoal = async (goalId) => {
     try {
-      await axios.delete(`/api/goals/${goalId}`);
+      await api.delete(`/api/goals/${goalId}`);
       setGoals(goals.filter(goal => goal._id !== goalId));
       setMessage('Goal deleted successfully! 🗑️');
       setMessageType('success');

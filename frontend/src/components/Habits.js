@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './Habits.css';
 
 const Habits = ({ user }) => {
@@ -20,7 +20,7 @@ const Habits = ({ user }) => {
 
   const fetchHabits = async () => {
     try {
-      const response = await axios.get('/api/habits');
+      const response = await api.get('/api/habits');
       setHabits(response.data);
     } catch (error) {
       console.error('Error fetching habits:', error);
@@ -41,7 +41,7 @@ const Habits = ({ user }) => {
     setMessage('');
 
     try {
-      const response = await axios.post('/api/habits', formData);
+      const response = await api.post('/api/habits', formData);
       setHabits([response.data, ...habits]);
       setMessage('Habit created successfully! 🎯');
       setMessageType('success');
@@ -59,7 +59,7 @@ const Habits = ({ user }) => {
 
   const checkInHabit = async (habitId) => {
     try {
-      const response = await axios.post(`/api/habits/${habitId}/checkin`);
+      const response = await api.post(`/api/habits/${habitId}/checkin`);
       const updatedHabit = response.data;
       setHabits(habits.map(habit =>
         habit._id === habitId ? updatedHabit : habit
@@ -94,7 +94,7 @@ const Habits = ({ user }) => {
     }
 
     try {
-      await axios.delete(`/api/habits/${habitId}`);
+      await api.delete(`/api/habits/${habitId}`);
       setHabits(habits.filter(habit => habit._id !== habitId));
       setMessage('Habit deleted successfully! 🗑️');
       setMessageType('success');
