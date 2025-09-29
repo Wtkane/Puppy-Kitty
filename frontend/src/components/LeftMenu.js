@@ -64,6 +64,19 @@ const LeftMenu = ({ isOpen, onClose, user }) => {
             </div>
           </div>
 
+          {/* Diary Section */}
+          <div className="menu-section">
+            <h3 className="menu-section-title">
+              📖 Journal
+            </h3>
+            <div className="menu-section-content">
+              <a href="/diary" className="menu-item" onClick={onClose}>
+                <span className="menu-icon">📝</span>
+                <span>Diary</span>
+              </a>
+            </div>
+          </div>
+
           {/* Groups Section */}
           {user && (
             <div className="menu-section">

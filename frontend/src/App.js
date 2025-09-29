@@ -16,6 +16,7 @@ import SpecialDates from './components/SpecialDates';
 import Goals from './components/Goals';
 import Habits from './components/Habits';
 import Focus from './components/Focus';
+import Diary from './components/Diary';
 
 // OAuth Callback Component
 const OAuthCallback = ({ onLogin }) => {
@@ -190,6 +191,10 @@ function App() {
             <Route
               path="/habits"
               element={user ? <Habits user={user} /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/diary"
+              element={user ? <Diary user={user} /> : <Navigate to="/login" />}
             />
             <Route
               path="/profile"
