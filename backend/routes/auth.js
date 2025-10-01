@@ -12,6 +12,13 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ORIGIN || 'http://localhost:3000'
 );
 
+// Also support multiple origins for OAuth
+const getClientOrigin = () => {
+  const origin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+  // If multiple origins are supported, use the first one for OAuth
+  return origin;
+};
+
 const SCOPES = [
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email',
