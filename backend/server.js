@@ -12,7 +12,8 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5001',
     'https://puppy-kitty.onrender.com',
-    'https://puppy-kitty-frontend.onrender.com'
+    'https://puppy-kitty-frontend.onrender.com',
+    'https://puppy-kitty.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
