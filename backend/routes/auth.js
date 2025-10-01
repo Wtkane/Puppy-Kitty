@@ -5,19 +5,18 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-// Initialize OAuth2 client
+// Initialize OAuth2 client - use environment variable or fallback to known working domain
+const getOAuthRedirectUri = () => {
+  // Check if CLIENT_ORIGIN is set, otherwise use the primary domain
+  const clientOrigin = process.env.CLIENT_ORIGIN || 'https://puppy-kitty-frontend.onrender.com';
+  return clientOrigin;
+};
+
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.CLIENT_ORIGIN || 'http://localhost:3000'
+  getOAuthRedirectUri()
 );
-
-// Also support multiple origins for OAuth
-const getClientOrigin = () => {
-  const origin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
-  // If multiple origins are supported, use the first one for OAuth
-  return origin;
-};
 
 const SCOPES = [
   'https://www.googleapis.com/auth/userinfo.profile',
