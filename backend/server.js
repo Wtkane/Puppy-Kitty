@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -29,6 +30,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/puppy-kitty', {
 .then(() => console.log('🐶 MongoDB connected'))
 .catch(err => console.log('❌ MongoDB connection error:', err));
 
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/calendar', require('./routes/calendar'));
@@ -38,6 +42,11 @@ app.use('/api/goals', require('./routes/goals'));
 app.use('/api/habits', require('./routes/habits'));
 app.use('/api/special-dates', require('./routes/specialDates'));
 app.use('/api/groups', require('./routes/groups'));
+
+// Catch all handler: send back React's index.html file for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+});
 
 // Health check endpoints
 app.get('/api/health', (req, res) => {
