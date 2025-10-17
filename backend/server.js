@@ -7,6 +7,20 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// On Render, check if we need to run the build
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+if (!fs.existsSync(path.join(__dirname, 'frontend/build/index.html'))) {
+  console.log('🤔 Build files not found, attempting to build frontend...');
+  try {
+    execSync('npm run build', { cwd: __dirname, stdio: 'inherit' });
+    console.log('✅ Frontend successfully built!');
+  } catch (error) {
+    console.error('❌ Failed to build frontend:', error.message);
+  }
+}
+
 // Middleware
 app.use(cors({
   origin: [
@@ -51,7 +65,32 @@ app.get('*', (req, res) => {
   const indexPath = path.join(__dirname, 'frontend/build/index.html');
   console.log('Attempting to serve index.html from:', indexPath);
   console.log('Index file exists:', require('fs').existsSync(indexPath));
-  res.sendFile(indexPath);
+
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Fallback if build doesn't exist yet - serve a message
+    console.log('Build files not found, serving fallback');
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Puppy & Kitty</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 2s linear infinite; margin: 0 auto; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          </style>
+        </head>
+        <body>
+          <div class="spinner"></div>
+          <h2>🐶🐱 Building Puppy & Kitty...</h2>
+          <p>Please refresh in a few moments!</p>
+        </body>
+      </html>
+    `;
+    res.send(html);
+  }
 });
 
 // Health check endpoints
