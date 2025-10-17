@@ -51,6 +51,10 @@ console.log('Directory exists:', require('fs').existsSync(path.join(__dirname, '
 app.use(express.static(path.join(__dirname, 'frontend/build')));
 
 // Routes
+app.use((req, res, next) => {
+  console.log('📨 Route check:', req.method, req.path);
+  next();
+});
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/todos', require('./routes/todos'));
@@ -62,16 +66,19 @@ app.use('/api/groups', require('./routes/groups'));
 
 // Catch all handler: send back React's index.html file for client-side routing
 app.get('*', (req, res) => {
+  console.log('🌐 CATCH-ALL: Request for:', req.path, '- this should serve React app');
+
   const indexPath = path.join(__dirname, 'frontend/build/index.html');
   console.log('Attempting to serve index.html from:', indexPath);
   console.log('Index file exists:', require('fs').existsSync(indexPath));
 
   if (require('fs').existsSync(indexPath)) {
-    res.sendFile(indexPath);
+    console.log('✅ SERVING React app for:', req.path);
+    res.status(200).sendFile(indexPath);
   } else {
     // Fallback if build doesn't exist yet - serve a message
-    console.log('Build files not found, serving fallback');
-    const html = `
+    console.log('❌ Build files not found, serving fallback for:', req.path);
+    res.status(200).send(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -86,10 +93,10 @@ app.get('*', (req, res) => {
           <div class="spinner"></div>
           <h2>🐶🐱 Building Puppy & Kitty...</h2>
           <p>Please refresh in a few moments!</p>
+          <p>Requested path: ${req.path}</p>
         </body>
       </html>
-    `;
-    res.send(html);
+    `);
   }
 });
 
