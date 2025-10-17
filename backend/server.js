@@ -31,7 +31,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/puppy-kitty', {
 .catch(err => console.log('❌ MongoDB connection error:', err));
 
 // Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+console.log('Serving static files from:', path.join(__dirname, 'frontend/build'));
+console.log('Current directory:', __dirname);
+console.log('Directory exists:', require('fs').existsSync(path.join(__dirname, 'frontend/build')));
+app.use(express.static(path.join(__dirname, 'frontend/build')));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -45,7 +48,10 @@ app.use('/api/groups', require('./routes/groups'));
 
 // Catch all handler: send back React's index.html file for client-side routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+  const indexPath = path.join(__dirname, 'frontend/build/index.html');
+  console.log('Attempting to serve index.html from:', indexPath);
+  console.log('Index file exists:', require('fs').existsSync(indexPath));
+  res.sendFile(indexPath);
 });
 
 // Health check endpoints
