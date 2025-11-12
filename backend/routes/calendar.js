@@ -121,10 +121,14 @@ router.post('/', auth, async (req, res) => {
   try {
     const { title, description, date, startTime, endTime, color, isAllDay } = req.body;
 
+    // Parse date as local date to avoid timezone issues
+    const [year, month, day] = date.split('-').map(Number);
+    const parsedDate = new Date(year, month - 1, day);
+
     const event = new Calendar({
       title,
       description,
-      date: new Date(date),
+      date: parsedDate,
       startTime,
       endTime,
       color,
@@ -147,9 +151,10 @@ router.put('/:id', auth, async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Convert date string to Date object if present
+    // Convert date string to Date object if present, parsing as local date
     if (updates.date) {
-      updates.date = new Date(updates.date);
+      const [year, month, day] = updates.date.split('-').map(Number);
+      updates.date = new Date(year, month - 1, day);
     }
 
     const event = await Calendar.findByIdAndUpdate(
