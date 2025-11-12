@@ -91,11 +91,11 @@ router.post('/', auth, async (req, res) => {
   try {
     const { title, description, priority, dueDate, assignedTo, category } = req.body;
 
-    // Parse date as local date to avoid timezone issues
+    // Parse date as UTC date to avoid timezone issues
     let parsedDueDate = null;
     if (dueDate) {
       const [year, month, day] = dueDate.split('-').map(Number);
-      parsedDueDate = new Date(year, month - 1, day);
+      parsedDueDate = new Date(Date.UTC(year, month - 1, day));
     }
 
     const todo = new Todo({
@@ -126,10 +126,10 @@ router.put('/:id', auth, async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Convert dueDate string to Date object if present, parsing as local date
+    // Convert dueDate string to Date object if present, parsing as UTC date
     if (updates.dueDate) {
       const [year, month, day] = updates.dueDate.split('-').map(Number);
-      updates.dueDate = new Date(year, month - 1, day);
+      updates.dueDate = new Date(Date.UTC(year, month - 1, day));
     }
 
     const todo = await Todo.findByIdAndUpdate(

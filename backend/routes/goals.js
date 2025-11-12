@@ -60,11 +60,11 @@ router.post('/', auth, async (req, res) => {
       priority
     } = req.body;
 
-    // Parse deadline as local date to avoid timezone issues
+    // Parse deadline as UTC date to avoid timezone issues
     let parsedDeadline = null;
     if (deadline) {
       const [year, month, day] = deadline.split('-').map(Number);
-      parsedDeadline = new Date(year, month - 1, day);
+      parsedDeadline = new Date(Date.UTC(year, month - 1, day));
     }
 
     const newGoal = new Goal({
