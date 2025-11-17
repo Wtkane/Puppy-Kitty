@@ -1,0 +1,7 @@
+{
+  "short_name": "Puppy Kitty",
+  "name": "Puppy & Kitty App",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone"
+}
